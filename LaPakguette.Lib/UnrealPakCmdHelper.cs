@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Text;
 
 namespace LaPakguette.Lib
 {
@@ -14,36 +13,36 @@ namespace LaPakguette.Lib
             _unrealPakPath = unrealPakPath;
         }
 
-        internal bool Unpack(string pakPath)
+        internal bool Unpack(string pakPath, string outDir)
         {
             var args = new string[4];
             args[0] = WrapPath(pakPath);
             args[1] = "-Extract";
-            args[2] = WrapPath(pakPath.Replace(".pak", ""));
+            args[2] = WrapPath(outDir);
             args[3] = "-cryptokeys=\"Crypto.json\"";
             return RunCommand(args);
         }
 
-        internal bool Repack(string pakPath, bool compress, bool encrypt, bool encryptindex)
+        internal bool Repack(string inputFolder, string pakOutPath, bool compress, bool encrypt, bool encryptindex)
         {
             var args = new List<string>();
-            args.Add(WrapPath(pakPath));
-            var repackFilepath = pakPath.Replace(".pak", "") + "\\" + repackFilename;
+            args.Add(WrapPath(pakOutPath));
+            var repackFilepath = inputFolder + "\\" + repackFilename;
             if (!File.Exists(repackFilepath))
             {
                 return false;
             }
             args.Add("-Create=" + WrapPath(repackFilepath));
             args.Add("-cryptokeys=\"Crypto.json\"");
-            if(compress)
+            if (compress)
             {
                 args.Add("-compress -compressionformat=\"oodle\"");
             }
-            if(encrypt)
+            if (encrypt)
             {
                 args.Add("-encrypt");
             }
-            if(encryptindex)
+            if (encryptindex)
             {
                 args.Add("-encryptindex");
             }

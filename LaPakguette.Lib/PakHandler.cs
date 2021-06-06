@@ -1,103 +1,132 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
 
 namespace LaPakguette.Lib
 {
+    /// <summary>
+    /// Handler for BNS UE4 .pak files
+    /// </summary>
     public class PakHandler
     {
         private const string quotes = "\"";
         private UnrealPakCmdHelper _unrealPakHelper;
-        private string _pakPath;
-        private string _mountPoint;
 
-        public PakHandler(string unrealpakpath, string pakPathOrFolderPath)
+        /// <summary>
+        /// Handler for BNS UE4 .pak files
+        /// </summary>
+        /// <param name="unrealpakpath">Path to UnrealPak.exe</param>
+        public PakHandler(string unrealpakpath)
         {
-            if(!File.Exists(unrealpakpath) || (!File.Exists(pakPathOrFolderPath) && !Directory.Exists(pakPathOrFolderPath)))
+            if (!File.Exists(unrealpakpath))
             {
                 throw new FileNotFoundException();
             }
             _unrealPakHelper = new UnrealPakCmdHelper(unrealpakpath);
-            
-            SetPakPath(pakPathOrFolderPath);
         }
 
-        public void SetPakPath(string pakPath)
+        /// <summary>
+        /// Unpack a .pak file
+        /// </summary>
+        /// <param name="pakPath">File to unpack</param>
+        /// <param name="unpackDir">Custom unpack directory<br />(Default next to .pak file)</param>
+        public void Unpack(string pakPath, string unpackDir = null)
         {
-            var fileAttr = File.GetAttributes(pakPath);
-            var isDirectory = fileAttr.HasFlag(FileAttributes.Directory);
-            if (isDirectory)
+            if (unpackDir == null)
             {
-                _pakPath = pakPath + "\\..\\" + Path.GetFileName(pakPath) + ".pak";
-                _mountPoint = null;
+                unpackDir = pakPath.Replace(".pak", "");
             }
-            else
+            if (!File.Exists(pakPath))
             {
-                _pakPath = pakPath;
-                SetMountPoint();
+                throw new FileNotFoundException("The .pak file could not be found!");
+            }
+            var mountpoint = GetMountPoint(pakPath);
+            var success = _unrealPakHelper.Unpack(pakPath, unpackDir);
+            if (success)
+            {
+                CreateRepackFile(pakPath, mountpoint, unpackDir);
             }
         }
 
-        public void Unpack()
+        /// <summary>
+        /// Create a .pak file from a repack folder<br />A repack.txt must exist in the folder.
+        /// </summary>
+        /// <param name="repackFolder">Repack folder with pak content and repack.txt file.</param>
+        /// <param name="pakOutPath">Custom output path of .pak file<br />(Default next to repack folder)</param>
+        /// <param name="compress">Enable oodle and zlib compression.</param>
+        /// <param name="encrypt">Enable content encryption.</param>
+        /// <param name="encryptIndex">Enable index encryption.</param>
+        public void Create(string repackFolder, string pakOutPath = null, bool compress = false, bool encrypt = false, bool encryptIndex = true)
         {
-            if(_mountPoint != null)
+            if (pakOutPath == null)
             {
-                var success = _unrealPakHelper.Unpack(_pakPath);
-                if (success)
+                pakOutPath = repackFolder + ".pak";
+            }
+            if (File.Exists(pakOutPath))
+            {
+                Backup(pakOutPath);
+            }
+            _unrealPakHelper.Repack(repackFolder, pakOutPath, compress, encrypt, encryptIndex);
+        }
+
+        /// <summary>
+        /// Repack a .pak file from the default unpack folder.
+        /// </summary>
+        /// <param name="pakPath">Path to .pak file.</param>
+        /// <param name="compress">Enable oodle and zlib compression.</param>
+        /// <param name="encrypt">Enable content encryption.</param>
+        /// <param name="encryptIndex">Enable index encryption.</param>
+        public void Repack(string pakPath, bool compress = false, bool encrypt = false, bool encryptIndex = true)
+        {
+            if (File.Exists(pakPath))
+            {
+                Backup(pakPath);
+            }
+            var repackFolderPath = pakPath.Replace(".pak", "");
+            if (!Directory.Exists(repackFolderPath))
+            {
+                throw new DirectoryNotFoundException("The repack folder could not be found!");
+            }
+            _unrealPakHelper.Repack(repackFolderPath, pakPath, compress, encrypt, encryptIndex);
+        }
+
+        private void Backup(string pakPath)
+        {
+            if (File.Exists(pakPath))
+            {
+                if (File.Exists(pakPath + ".bak"))
                 {
-                    CreateRepackFile();
+                    File.Delete(pakPath + ".bak");
                 }
+                File.Copy(pakPath, pakPath + ".bak");
             }
         }
 
-        public void Repack(bool compress = false, bool encrypt = false)
+        private void CreateRepackFile(string pakPath, string mountPoint, string customUnpackDir)
         {
-            Backup();
-            var success = _unrealPakHelper.Repack(_pakPath, compress, encrypt, true);
-            if(success)
-            {
-                SetMountPoint(); //update mount point in case of directory only repack
-            }
-        }
-
-        private void Backup()
-        {
-            if(File.Exists(_pakPath))
-            {
-                if (File.Exists(_pakPath + ".bak"))
-                {
-                    File.Delete(_pakPath + ".bak");
-                }
-                File.Copy(_pakPath, _pakPath + ".bak");
-            }
-        }
-
-        private void CreateRepackFile()
-        {
-            var repackFolderPath = _pakPath.Replace(".pak", "");
+            var repackFolderPath = customUnpackDir ?? pakPath.Replace(".pak", "");
             var repackFolders = Directory.GetDirectories(repackFolderPath);
             var repackFiles = Directory.GetFiles(repackFolderPath).Where(x => Path.GetFileName(x) != _unrealPakHelper.repackFilename);
             var repackLines = new List<string>();
             foreach (var folder in repackFolders)
             {
                 var dirName = Path.GetFileName(folder);
-                repackLines.Add(quotes + folder + "\\*\" " + quotes + _mountPoint + dirName + "/" + quotes);
+                repackLines.Add(quotes + folder + "\\*\" " + quotes + mountPoint + dirName + "/" + quotes);
             }
-            foreach(var file in repackFiles)
+            foreach (var file in repackFiles)
             {
                 var fileName = Path.GetFileName(file);
-                repackLines.Add(quotes + file + quotes + " " + quotes + _mountPoint + fileName + quotes);
+                repackLines.Add(quotes + file + quotes + " " + quotes + mountPoint + fileName + quotes);
             }
             File.WriteAllLines(repackFolderPath + "\\" + _unrealPakHelper.repackFilename, repackLines);
         }
 
-        private void SetMountPoint()
+        private string GetMountPoint(string pakPath)
         {
             byte[] indexBuffer;
             bool indexIsEncrypted;
-            using (var br = new BinaryReader(new FileStream(_pakPath, FileMode.Open)))
+            using (var br = new BinaryReader(new FileStream(pakPath, FileMode.Open)))
             {
                 var encryptedIndexOffset = br.BaseStream.Length - 0xCE;
                 br.BaseStream.Position = encryptedIndexOffset;
@@ -116,7 +145,7 @@ namespace LaPakguette.Lib
                 var mountPointLength = br.ReadInt32();
                 mountPoint = Encoding.UTF8.GetString(br.ReadBytes(mountPointLength - 1)); // -1 to remove terminating 0 byte
             }
-            _mountPoint = mountPoint;
+            return mountPoint;
         }
 
     }

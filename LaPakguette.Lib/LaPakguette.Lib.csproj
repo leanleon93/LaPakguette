@@ -2,6 +2,21 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
+    <Description>Library to unpack and repack Blade &amp; Soul UE4 .pak files.</Description>
+    <Authors>LEaN</Authors>
+    <Product>LaPakguette.Lib</Product>
+    <Copyright>LEaN</Copyright>
+    <RepositoryUrl>https://github.com/leanleon93/LaPakguette</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <NeutralLanguage>en</NeutralLanguage>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DocumentationFile>C:\Users\leanw\source\repos\LaPakguette\LaPakguette.Lib\LaPakguette.Lib.xml</DocumentationFile>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <DocumentationFile>C:\Users\leanw\source\repos\LaPakguette\LaPakguette.Lib\LaPakguette.Lib.xml</DocumentationFile>
   </PropertyGroup>
 
 </Project>
