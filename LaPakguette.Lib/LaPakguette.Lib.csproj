@@ -19,4 +19,20 @@
     <DocumentationFile>C:\Users\leanw\source\repos\LaPakguette\LaPakguette.Lib\LaPakguette.Lib.xml</DocumentationFile>
   </PropertyGroup>
 
+  <ItemGroup>
+    <None Remove="Crypto.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Crypto.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Crypto.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
+  </ItemGroup>
+
 </Project>

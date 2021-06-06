@@ -19,7 +19,8 @@ namespace LaPakguette.Lib
             args[0] = WrapPath(pakPath);
             args[1] = "-Extract";
             args[2] = WrapPath(outDir);
-            args[3] = "-cryptokeys=\"Crypto.json\"";
+            var cryptoPath = Directory.GetCurrentDirectory() + "\\Crypto.json";
+            args[3] = "-cryptokeys=\"" + cryptoPath + "\"";
             return RunCommand(args);
         }
 
@@ -33,7 +34,8 @@ namespace LaPakguette.Lib
                 return false;
             }
             args.Add("-Create=" + WrapPath(repackFilepath));
-            args.Add("-cryptokeys=\"Crypto.json\"");
+            var cryptoPath = Directory.GetCurrentDirectory() + "\\Crypto.json";
+            args.Add("-cryptokeys=\"" + cryptoPath + "\"");
             if (compress)
             {
                 args.Add("-compress -compressionformat=\"oodle\"");

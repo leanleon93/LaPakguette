@@ -6,7 +6,7 @@ using System.Text;
 namespace LaPakguette.Lib
 {
     /// <summary>
-    /// Handler for BNS UE4 .pak files
+    /// Handler for BNS UE4 .pak files wrapping UnrealPak
     /// </summary>
     public class PakHandler
     {
@@ -14,7 +14,7 @@ namespace LaPakguette.Lib
         private UnrealPakCmdHelper _unrealPakHelper;
 
         /// <summary>
-        /// Handler for BNS UE4 .pak files
+        /// Handler for BNS UE4 .pak files wrapping UnrealPak
         /// </summary>
         /// <param name="unrealpakpath">Path to UnrealPak.exe</param>
         public PakHandler(string unrealpakpath)

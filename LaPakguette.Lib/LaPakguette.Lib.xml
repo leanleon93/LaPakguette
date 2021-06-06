@@ -6,12 +6,12 @@
     <members>
         <member name="T:LaPakguette.Lib.PakHandler">
             <summary>
-            Handler for BNS UE4 .pak files
+            Handler for BNS UE4 .pak files wrapping UnrealPak
             </summary>
         </member>
         <member name="M:LaPakguette.Lib.PakHandler.#ctor(System.String)">
             <summary>
-            Handler for BNS UE4 .pak files
+            Handler for BNS UE4 .pak files wrapping UnrealPak
             </summary>
             <param name="unrealpakpath">Path to UnrealPak.exe</param>
         </member>
