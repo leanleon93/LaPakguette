@@ -10,8 +10,8 @@ namespace LaPakguette.ConsoleUI
         static void Main(string[] args)
         {
             var pakHandler = new PakHandler(_unrealPakPath, _pakPath);
-            pakHandler.Unpack();
-            //pakHandler.Repack(true);
+            //pakHandler.Unpack();
+            pakHandler.Repack(true);
         }
     }
 }

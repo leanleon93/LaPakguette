@@ -31,6 +31,7 @@ namespace LaPakguette.Lib
             if (isDirectory)
             {
                 _pakPath = pakPath + "\\..\\" + Path.GetFileName(pakPath) + ".pak";
+                _mountPoint = null;
             }
             else
             {
