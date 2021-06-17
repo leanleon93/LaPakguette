@@ -40,7 +40,8 @@ namespace LaPakguette.Lib
             }
             CryptoModel crypto = JsonConvert.DeserializeObject<CryptoModel>(File.ReadAllText(cryptoPath));
             var basedAesKey = crypto.EncryptionKey.Key;
-            _aesKey = Convert.FromBase64String(basedAesKey);
+            if(!string.IsNullOrEmpty(basedAesKey) && basedAesKey.ToLower() != "null")
+                _aesKey = Convert.FromBase64String(basedAesKey);
         }
 
         /// <summary>
@@ -48,7 +49,7 @@ namespace LaPakguette.Lib
         /// </summary>
         /// <param name="pakPath">File to unpack</param>
         /// <param name="unpackDir">Custom unpack directory<br />(Default next to .pak file)</param>
-        public void Unpack(string pakPath, string unpackDir = null)
+        public bool Unpack(string pakPath, string unpackDir = null)
         {
             if (unpackDir == null)
             {
@@ -59,11 +60,13 @@ namespace LaPakguette.Lib
                 throw new FileNotFoundException("The .pak file could not be found!");
             }
             var mountpoint = GetMountPoint(pakPath);
+            if (mountpoint == null) return false;
             var success = _unrealPakHelper.Unpack(pakPath, unpackDir);
             if (success)
             {
                 CreateRepackFile(pakPath, mountpoint, unpackDir);
             }
+            return success;
         }
 
         /// <summary>
@@ -74,7 +77,7 @@ namespace LaPakguette.Lib
         /// <param name="compress">Enable oodle and zlib compression.</param>
         /// <param name="encrypt">Enable content encryption.</param>
         /// <param name="encryptIndex">Enable index encryption.</param>
-        public void Create(string repackFolder, string pakOutPath = null, bool compress = true, bool encrypt = false, bool encryptIndex = true)
+        public bool Create(string repackFolder, string pakOutPath = null, bool compress = true, bool encrypt = false, bool encryptIndex = true)
         {
             if (pakOutPath == null)
             {
@@ -84,7 +87,7 @@ namespace LaPakguette.Lib
             {
                 Backup(pakOutPath);
             }
-            _unrealPakHelper.Repack(repackFolder, pakOutPath, compress, encrypt, encryptIndex);
+            return _unrealPakHelper.Repack(repackFolder, pakOutPath, compress, encrypt, encryptIndex);
         }
 
         /// <summary>
@@ -94,7 +97,7 @@ namespace LaPakguette.Lib
         /// <param name="compress">Enable oodle and zlib compression.</param>
         /// <param name="encrypt">Enable content encryption.</param>
         /// <param name="encryptIndex">Enable index encryption.</param>
-        public void Repack(string pakPath, bool compress = false, bool encrypt = false, bool encryptIndex = true)
+        public bool Repack(string pakPath, bool compress = false, bool encrypt = false, bool encryptIndex = true)
         {
             if (File.Exists(pakPath))
             {
@@ -105,7 +108,7 @@ namespace LaPakguette.Lib
             {
                 throw new DirectoryNotFoundException("The repack folder could not be found!");
             }
-            _unrealPakHelper.Repack(repackFolderPath, pakPath, compress, encrypt, encryptIndex);
+            return _unrealPakHelper.Repack(repackFolderPath, pakPath, compress, encrypt, encryptIndex);
         }
 
         private void Backup(string pakPath)
@@ -141,28 +144,35 @@ namespace LaPakguette.Lib
 
         private string GetMountPoint(string pakPath)
         {
-            byte[] indexBuffer;
-            bool indexIsEncrypted;
-            using (var br = new BinaryReader(new FileStream(pakPath, FileMode.Open)))
+            try
             {
-                var encryptedIndexOffset = br.BaseStream.Length - 0xCE;
-                br.BaseStream.Position = encryptedIndexOffset;
-                indexIsEncrypted = br.ReadByte() == 1;
-                var indexOffsetOffset = br.BaseStream.Length - 0xC5;
-                br.BaseStream.Position = indexOffsetOffset;
-                var indexOffset = br.ReadInt64();
-                var indexLength = br.ReadInt64();
-                br.BaseStream.Position = indexOffset;
-                indexBuffer = br.ReadBytes((int)indexLength);
+                byte[] indexBuffer;
+                bool indexIsEncrypted;
+                using (var br = new BinaryReader(new FileStream(pakPath, FileMode.Open)))
+                {
+                    var encryptedIndexOffset = br.BaseStream.Length - 0xCE;
+                    br.BaseStream.Position = encryptedIndexOffset;
+                    indexIsEncrypted = br.ReadByte() == 1;
+                    var indexOffsetOffset = br.BaseStream.Length - 0xC5;
+                    br.BaseStream.Position = indexOffsetOffset;
+                    var indexOffset = br.ReadInt64();
+                    var indexLength = br.ReadInt64();
+                    br.BaseStream.Position = indexOffset;
+                    indexBuffer = br.ReadBytes((int)indexLength);
+                }
+                string mountPoint;
+                var decrypted = indexIsEncrypted ? AesHandler.DecryptAES(indexBuffer, _aesKey) : indexBuffer;
+                using (var br = new BinaryReader(new MemoryStream(decrypted)))
+                {
+                    var mountPointLength = br.ReadInt32();
+                    mountPoint = Encoding.UTF8.GetString(br.ReadBytes(mountPointLength - 1)); // -1 to remove terminating 0 byte
+                }
+                return mountPoint;
             }
-            string mountPoint;
-            var decrypted = indexIsEncrypted ? AesHandler.DecryptAES(indexBuffer, _aesKey) : indexBuffer;
-            using (var br = new BinaryReader(new MemoryStream(decrypted)))
+            catch
             {
-                var mountPointLength = br.ReadInt32();
-                mountPoint = Encoding.UTF8.GetString(br.ReadBytes(mountPointLength - 1)); // -1 to remove terminating 0 byte
+                return null;
             }
-            return mountPoint;
         }
 
     }

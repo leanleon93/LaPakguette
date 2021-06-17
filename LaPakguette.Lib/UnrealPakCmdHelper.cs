@@ -61,6 +61,7 @@ namespace LaPakguette.Lib
             System.Diagnostics.Process process = new System.Diagnostics.Process();
             System.Diagnostics.ProcessStartInfo startInfo = new System.Diagnostics.ProcessStartInfo
             {
+                CreateNoWindow = true,
                 WorkingDirectory = Path.GetDirectoryName(_unrealPakPath),
                 WindowStyle = System.Diagnostics.ProcessWindowStyle.Hidden,
                 FileName = _unrealPakPath,

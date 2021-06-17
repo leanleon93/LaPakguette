@@ -3,76 +3,76 @@ using System.Collections.Generic;
 
 namespace LaPakguette.Lib.Models
 {
-    internal class Types
+    public class Types
     {
-        [JsonProperty("UnrealBuildTool.EncryptionAndSigning+CryptoSettings,UnrealBuildTool,Version4.0.0.0,Cultureneutral,internalKeyTokennull")]
-        internal string UnrealBuildToolEncryptionAndSigningCryptoSettingsUnrealBuildToolVersion4000CultureneutralinternalKeyTokennull { get; set; }
+        [JsonProperty("UnrealBuildTool.EncryptionAndSigning+CryptoSettings,UnrealBuildTool,Version4.0.0.0,Cultureneutral,publicKeyTokennull")]
+        public string UnrealBuildToolEncryptionAndSigningCryptoSettingsUnrealBuildToolVersion4000CultureneutralpublicKeyTokennull { get; set; }
 
-        [JsonProperty("UnrealBuildTool.EncryptionAndSigning+EncryptionKey,UnrealBuildTool,Version4.0.0.0,Cultureneutral,internalKeyTokennull")]
-        internal string UnrealBuildToolEncryptionAndSigningEncryptionKeyUnrealBuildToolVersion4000CultureneutralinternalKeyTokennull { get; set; }
+        [JsonProperty("UnrealBuildTool.EncryptionAndSigning+EncryptionKey,UnrealBuildTool,Version4.0.0.0,Cultureneutral,publicKeyTokennull")]
+        public string UnrealBuildToolEncryptionAndSigningEncryptionKeyUnrealBuildToolVersion4000CultureneutralpublicKeyTokennull { get; set; }
 
-        [JsonProperty("UnrealBuildTool.EncryptionAndSigning+SigningKeyPair,UnrealBuildTool,Version4.0.0.0,Cultureneutral,internalKeyTokennull")]
-        internal string UnrealBuildToolEncryptionAndSigningSigningKeyPairUnrealBuildToolVersion4000CultureneutralinternalKeyTokennull { get; set; }
+        [JsonProperty("UnrealBuildTool.EncryptionAndSigning+SigningKeyPair,UnrealBuildTool,Version4.0.0.0,Cultureneutral,publicKeyTokennull")]
+        public string UnrealBuildToolEncryptionAndSigningSigningKeyPairUnrealBuildToolVersion4000CultureneutralpublicKeyTokennull { get; set; }
 
-        [JsonProperty("UnrealBuildTool.EncryptionAndSigning+SigningKey,UnrealBuildTool,Version4.0.0.0,Cultureneutral,internalKeyTokennull")]
-        internal string UnrealBuildToolEncryptionAndSigningSigningKeyUnrealBuildToolVersion4000CultureneutralinternalKeyTokennull { get; set; }
+        [JsonProperty("UnrealBuildTool.EncryptionAndSigning+SigningKey,UnrealBuildTool,Version4.0.0.0,Cultureneutral,publicKeyTokennull")]
+        public string UnrealBuildToolEncryptionAndSigningSigningKeyUnrealBuildToolVersion4000CultureneutralpublicKeyTokennull { get; set; }
     }
 
-    internal class EncryptionKey
+    public class EncryptionKey
     {
         [JsonProperty("$type")]
-        internal string Type { get; set; }
+        public string Type { get; set; }
 
         [JsonProperty("Name")]
-        internal string Name { get; set; }
+        public string Name { get; set; }
 
         [JsonProperty("Guid")]
-        internal string Guid { get; set; }
+        public string Guid { get; set; }
 
         [JsonProperty("Key")]
-        internal string Key { get; set; }
+        public string Key { get; set; }
     }
 
-    internal class CryptoModel
+    public class CryptoModel
     {
         [JsonProperty("$types")]
-        internal Types Types { get; set; }
+        public Types Types { get; set; }
 
         [JsonProperty("$type")]
-        internal string Type { get; set; }
+        public string Type { get; set; }
 
         [JsonProperty("EncryptionKey")]
-        internal EncryptionKey EncryptionKey { get; set; }
+        public EncryptionKey EncryptionKey { get; set; }
 
         [JsonProperty("SigningKey")]
-        internal object SigningKey { get; set; }
+        public object SigningKey { get; set; }
 
         [JsonProperty("bEnablePakSigning")]
-        internal bool BEnablePakSigning { get; set; }
+        public bool BEnablePakSigning { get; set; }
 
         [JsonProperty("bEnablePakIndexEncryption")]
-        internal bool BEnablePakIndexEncryption { get; set; }
+        public bool BEnablePakIndexEncryption { get; set; }
 
         [JsonProperty("bEnablePakIniEncryption")]
-        internal bool BEnablePakIniEncryption { get; set; }
+        public bool BEnablePakIniEncryption { get; set; }
 
         [JsonProperty("bEnablePakUAssetEncryption")]
-        internal bool BEnablePakUAssetEncryption { get; set; }
+        public bool BEnablePakUAssetEncryption { get; set; }
 
         [JsonProperty("bEnablePakFullAssetEncryption")]
-        internal bool BEnablePakFullAssetEncryption { get; set; }
+        public bool BEnablePakFullAssetEncryption { get; set; }
 
         [JsonProperty("bDataCryptoRequired")]
-        internal bool BDataCryptoRequired { get; set; }
+        public bool BDataCryptoRequired { get; set; }
 
         [JsonProperty("PakEncryptionRequired")]
-        internal bool PakEncryptionRequired { get; set; }
+        public bool PakEncryptionRequired { get; set; }
 
         [JsonProperty("PakSigningRequired")]
-        internal bool PakSigningRequired { get; set; }
+        public bool PakSigningRequired { get; set; }
 
         [JsonProperty("SecondaryEncryptionKeys")]
-        internal List<object> SecondaryEncryptionKeys { get; set; }
+        public List<object> SecondaryEncryptionKeys { get; set; }
     }
 
 

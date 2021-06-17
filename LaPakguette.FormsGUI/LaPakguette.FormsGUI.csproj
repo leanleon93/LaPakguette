@@ -4,6 +4,13 @@
     <OutputType>WinExe</OutputType>
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <UseWindowsForms>true</UseWindowsForms>
+    <ApplicationIcon>unreal_engine_logo.ico</ApplicationIcon>
+    <Platforms>AnyCPU;x64</Platforms>
+    <AssemblyName>LaPakguette</AssemblyName>
   </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\LaPakguette.Lib\LaPakguette.Lib.csproj" />
+  </ItemGroup>
 
 </Project>
