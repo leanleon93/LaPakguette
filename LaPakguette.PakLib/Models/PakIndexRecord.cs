@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Text;
 
 namespace LaPakguette.PakLib.Models
@@ -16,5 +17,13 @@ namespace LaPakguette.PakLib.Models
         public uint FileNameSize { get; set; }
         public string FileName { get; set; }
         public PakFileMetadata Metadata { get; set; }
+
+        internal void WriteToStream(BinaryWriter bw)
+        {
+            bw.Write(FileNameSize);
+            bw.Write(Encoding.UTF8.GetBytes(FileName));
+            bw.Write((byte)0);
+            Metadata.WriteToStream(bw);
+        }
     }
 }

@@ -63,5 +63,25 @@ namespace LaPakguette.PakLib.Models
         public ulong IndexOffset { get; set; }
         public ulong IndexSize { get; set; }
         public byte[] Sha1Hash { get; set; }
+
+        internal void WriteToStream(BinaryWriter bw)
+        {
+            var pos = bw.BaseStream.Position;
+            bw.Write(Magic);
+            bw.Write(Version);
+            bw.Write(IndexOffset);
+            bw.Write(IndexSize);
+            bw.Write(Sha1Hash);
+            bw.Write((byte)0);
+            foreach(var method in CompressionMethods)
+            {
+                bw.Write(Encoding.UTF8.GetBytes(method));
+                bw.Write(new byte[28]);
+            }
+            var pos2 = bw.BaseStream.Position;
+            //0xCD
+            var padd = 0xCD - (pos2 - pos);
+            bw.Write(new byte[padd]);
+        }
     }
 }

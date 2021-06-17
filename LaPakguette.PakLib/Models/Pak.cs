@@ -33,6 +33,33 @@ namespace LaPakguette.PakLib.Models
             }
         }
 
+        public byte[] ToByteArray(bool compress, bool encrypt, bool encryptIndex, string[] compressionMethods, byte[] AES_KEY = null)
+        {
+            using (var ms = new MemoryStream())
+            {
+                using (var bw = new BinaryWriter(ms))
+                {
+                    Footer.CompressionMethods = compressionMethods;
+                    for (int i = 0; i < Index.Records.Length; i++)
+                    {
+                        PakIndexRecord indexRecord = Index.Records[i];
+                        PakDataRecord dataRecord = DataRecords[i];
+                        var metadata = dataRecord.WriteToStream(bw, compress, encrypt, compressionMethods, AES_KEY);
+                        indexRecord.Metadata = metadata;
+                    }
+                    var (indexOffset, indexSize, hash) = Index.WriteToStream(bw, encryptIndex, AES_KEY);
+                    Footer.IndexOffset = (ulong)indexOffset;
+                    Footer.IndexSize = (ulong)indexSize;
+                    Footer.Sha1Hash = hash;
+                    bw.Write(new byte[16]);
+                    bw.Write((byte)(encryptIndex ? 1 : 0));
+                    Footer.WriteToStream(bw);
+                    return ms.ToArray();
+                }
+            }
+            
+        }
+
         public static Pak CreateFromFolder(string folderPath)
         {
             var mpPath = Path.Combine(folderPath, mountpointFileName);

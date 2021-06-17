@@ -4,6 +4,7 @@ namespace LaPakguette.PakLib.Models
 {
     public class CompressionBlock
     {
+        public CompressionBlock() { }
         public CompressionBlock(BinaryReader br)
         {
             CompressedDataStartOffset = br.ReadUInt64();

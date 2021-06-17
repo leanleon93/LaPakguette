@@ -7,6 +7,7 @@ namespace LaPakguette.PakLib.Models
 {
     public class PakIndex
     {
+        public PakIndex() { }
 
         public PakIndex(BinaryReader br, long indexOffset, int indexSize, bool encrypted, byte[] AES_KEY)
         {
@@ -37,5 +38,37 @@ namespace LaPakguette.PakLib.Models
         public string MountPoint { get; set; }
         public uint RecordCount { get; set; }
         public PakIndexRecord[] Records { get; set; }
+
+        internal (long, long, byte[]) WriteToStream(BinaryWriter bw, bool encryptIndex, byte[] AES_KEY)
+        {
+            var indexOffset = bw.BaseStream.Position;
+            byte[] indexData;
+            using (MemoryStream ms = new MemoryStream())
+            {
+                using (BinaryWriter bw2 = new BinaryWriter(ms))
+                {
+                    bw2.Write(MountPointSize);
+                    bw2.Write(Encoding.UTF8.GetBytes(MountPoint));
+                    bw2.Write((byte)0);
+                    bw2.Write(RecordCount);
+                    for (int i = 0; i < Records.Length; i++)
+                    {
+                        Records[i].WriteToStream(bw2);
+                    }
+                    indexData = ms.ToArray();
+                }
+            }
+            var nonPaddedSize = indexData.Length;
+            byte[] hashWorthyData = new byte[nonPaddedSize];
+            if(encryptIndex)
+            {
+                indexData = AesHandler.EncryptAES(indexData, AES_KEY);
+                Array.Copy(indexData, 0, hashWorthyData, 0, hashWorthyData.Length);
+            }
+            bw.Write(indexData);
+            var indexSize = bw.BaseStream.Position - indexOffset;
+            var hash = PakDataRecord.GetHashSHA1(encryptIndex ? hashWorthyData : indexData);
+            return (indexOffset, indexSize, hash);
+        }
     }
 }

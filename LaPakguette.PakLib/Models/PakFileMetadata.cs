@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 
 namespace LaPakguette.PakLib.Models
 {
@@ -21,11 +22,13 @@ namespace LaPakguette.PakLib.Models
                 }
             }
             IsEncrypted = br.ReadByte() == 1;
+            PaddedDataSize = IsEncrypted ? (ulong)AesHandler.CalculatePaddedSize((int)DataRecordSize) : DataRecordSize;
             UncompressedCompressionBlockSize = br.ReadUInt32();
         }
 
         public ulong DataRecordOffset { get; set; }
         public ulong DataRecordSize { get; set; }
+        public ulong PaddedDataSize { get; set; }
         public ulong UncompressedSize { get; set; }
         public uint CompressionMethod { get; set; }
         public byte[] DataRecordSha1Hash { get; set; }
@@ -33,5 +36,25 @@ namespace LaPakguette.PakLib.Models
         public CompressionBlock[] CompressionBlocks { get; set; }
         public bool IsEncrypted { get; set; }
         public uint UncompressedCompressionBlockSize { get; set; }
+
+        internal void WriteToStream(BinaryWriter bw)
+        {
+            bw.Write(DataRecordOffset);
+            bw.Write(DataRecordSize);
+            bw.Write(UncompressedSize);
+            bw.Write(CompressionMethod);
+            bw.Write(DataRecordSha1Hash);
+            if (CompressionMethod != 0x00)
+            {
+                bw.Write(CompressionBlockCount);
+                foreach (var block in CompressionBlocks)
+                {
+                    bw.Write(block.CompressedDataStartOffset);
+                    bw.Write(block.CompressedDataEndOffset);
+                }
+            }
+            bw.Write((byte)(IsEncrypted ? 1 : 0));
+            bw.Write(UncompressedCompressionBlockSize);
+        }
     }
 }
