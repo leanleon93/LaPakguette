@@ -1,4 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using LaPakguette.Lib.Models;
+using Newtonsoft.Json;
+using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -12,6 +15,7 @@ namespace LaPakguette.Lib
     {
         private const string quotes = "\"";
         private UnrealPakCmdHelper _unrealPakHelper;
+        private byte[] _aesKey;
 
         /// <summary>
         /// Handler for BNS UE4 .pak files wrapping UnrealPak
@@ -19,11 +23,24 @@ namespace LaPakguette.Lib
         /// <param name="unrealpakpath">Path to UnrealPak.exe</param>
         public PakHandler(string unrealpakpath)
         {
+            SetupAesKeyFromCryptoJson();
             if (!File.Exists(unrealpakpath))
             {
                 throw new FileNotFoundException();
             }
             _unrealPakHelper = new UnrealPakCmdHelper(unrealpakpath);
+        }
+
+        private void SetupAesKeyFromCryptoJson()
+        {
+            var cryptoPath = Directory.GetCurrentDirectory() + "\\Crypto.json";
+            if (!File.Exists(cryptoPath))
+            {
+                throw new FileNotFoundException();
+            }
+            CryptoModel crypto = JsonConvert.DeserializeObject<CryptoModel>(File.ReadAllText(cryptoPath));
+            var basedAesKey = crypto.EncryptionKey.Key;
+            _aesKey = Convert.FromBase64String(basedAesKey);
         }
 
         /// <summary>
@@ -57,7 +74,7 @@ namespace LaPakguette.Lib
         /// <param name="compress">Enable oodle and zlib compression.</param>
         /// <param name="encrypt">Enable content encryption.</param>
         /// <param name="encryptIndex">Enable index encryption.</param>
-        public void Create(string repackFolder, string pakOutPath = null, bool compress = false, bool encrypt = false, bool encryptIndex = true)
+        public void Create(string repackFolder, string pakOutPath = null, bool compress = true, bool encrypt = false, bool encryptIndex = true)
         {
             if (pakOutPath == null)
             {
@@ -139,7 +156,7 @@ namespace LaPakguette.Lib
                 indexBuffer = br.ReadBytes((int)indexLength);
             }
             string mountPoint;
-            var decrypted = indexIsEncrypted ? AesHandler.DecryptAES(indexBuffer) : indexBuffer;
+            var decrypted = indexIsEncrypted ? AesHandler.DecryptAES(indexBuffer, _aesKey) : indexBuffer;
             using (var br = new BinaryReader(new MemoryStream(decrypted)))
             {
                 var mountPointLength = br.ReadInt32();
