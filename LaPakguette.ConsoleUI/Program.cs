@@ -5,6 +5,8 @@ namespace LaPakguette.ConsoleUI
 {
     class Program
     {
+        //Console UI used for fast debugging without any UI
+
         private static readonly string _unrealPakPath = @"C:\Program Files\Epic Games\UE_4.25\Engine\Binaries\Win64\UnrealPak.exe";
         private static readonly string _pakPath2 = @"C:\Program Files (x86)\NCSOFT\BNSR\Content\Paks\Pak0-UFS_P-WindowsNoEditor.pak";
         private const string path3 = @"C:\Program Files (x86)\NCSOFT\BNSR\Content\Paks\Pak0-WindowsNoEditor.pak";
