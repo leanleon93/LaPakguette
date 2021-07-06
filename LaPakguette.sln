@@ -11,11 +11,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LaPakguette.PakLib", "LaPak
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LaPakguette.PakLibTests", "LaPakguette.PakLibTests\LaPakguette.PakLibTests.csproj", "{E497744A-0A79-4885-9B2D-66400DA922D3}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "OodleWrapper", "..\OodleWrapper\OodleWrapper\OodleWrapper.vcxproj", "{DFEEC456-D66B-4B99-8A4F-D2494E42BC90}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OodleCompressionLib", "..\OodleWrapper\OodleCompressionLib\OodleCompressionLib.csproj", "{116418AB-77CF-42EB-9A23-908BF06E7DA6}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LaPakguette.FormsGUI", "LaPakguette.FormsGUI\LaPakguette.FormsGUI.csproj", "{8E4E8381-EDC4-4874-8BA8-BC03C27359B8}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LaPakguette.FormsGUI", "LaPakguette.FormsGUI\LaPakguette.FormsGUI.csproj", "{8E4E8381-EDC4-4874-8BA8-BC03C27359B8}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -75,28 +71,6 @@ Global
 		{E497744A-0A79-4885-9B2D-66400DA922D3}.Release|x64.Build.0 = Release|x64
 		{E497744A-0A79-4885-9B2D-66400DA922D3}.Release|x86.ActiveCfg = Release|Any CPU
 		{E497744A-0A79-4885-9B2D-66400DA922D3}.Release|x86.Build.0 = Release|Any CPU
-		{DFEEC456-D66B-4B99-8A4F-D2494E42BC90}.Debug|Any CPU.ActiveCfg = Debug|Win32
-		{DFEEC456-D66B-4B99-8A4F-D2494E42BC90}.Debug|x64.ActiveCfg = Debug|x64
-		{DFEEC456-D66B-4B99-8A4F-D2494E42BC90}.Debug|x64.Build.0 = Debug|x64
-		{DFEEC456-D66B-4B99-8A4F-D2494E42BC90}.Debug|x86.ActiveCfg = Debug|Win32
-		{DFEEC456-D66B-4B99-8A4F-D2494E42BC90}.Debug|x86.Build.0 = Debug|Win32
-		{DFEEC456-D66B-4B99-8A4F-D2494E42BC90}.Release|Any CPU.ActiveCfg = Release|Win32
-		{DFEEC456-D66B-4B99-8A4F-D2494E42BC90}.Release|x64.ActiveCfg = Release|x64
-		{DFEEC456-D66B-4B99-8A4F-D2494E42BC90}.Release|x64.Build.0 = Release|x64
-		{DFEEC456-D66B-4B99-8A4F-D2494E42BC90}.Release|x86.ActiveCfg = Release|Win32
-		{DFEEC456-D66B-4B99-8A4F-D2494E42BC90}.Release|x86.Build.0 = Release|Win32
-		{116418AB-77CF-42EB-9A23-908BF06E7DA6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{116418AB-77CF-42EB-9A23-908BF06E7DA6}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{116418AB-77CF-42EB-9A23-908BF06E7DA6}.Debug|x64.ActiveCfg = Debug|x64
-		{116418AB-77CF-42EB-9A23-908BF06E7DA6}.Debug|x64.Build.0 = Debug|x64
-		{116418AB-77CF-42EB-9A23-908BF06E7DA6}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{116418AB-77CF-42EB-9A23-908BF06E7DA6}.Debug|x86.Build.0 = Debug|Any CPU
-		{116418AB-77CF-42EB-9A23-908BF06E7DA6}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{116418AB-77CF-42EB-9A23-908BF06E7DA6}.Release|Any CPU.Build.0 = Release|Any CPU
-		{116418AB-77CF-42EB-9A23-908BF06E7DA6}.Release|x64.ActiveCfg = Release|x64
-		{116418AB-77CF-42EB-9A23-908BF06E7DA6}.Release|x64.Build.0 = Release|x64
-		{116418AB-77CF-42EB-9A23-908BF06E7DA6}.Release|x86.ActiveCfg = Release|Any CPU
-		{116418AB-77CF-42EB-9A23-908BF06E7DA6}.Release|x86.Build.0 = Release|Any CPU
 		{8E4E8381-EDC4-4874-8BA8-BC03C27359B8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{8E4E8381-EDC4-4874-8BA8-BC03C27359B8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8E4E8381-EDC4-4874-8BA8-BC03C27359B8}.Debug|x64.ActiveCfg = Debug|x64

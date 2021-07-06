@@ -5,10 +5,8 @@ namespace LaPakguette.PakLib
 {
     public static class AesHandler
     {
-        private static readonly byte[] AES_KEY = new byte[] { 0xd2, 0xe5, 0xf7, 0xf9, 0x4e, 0x62, 0x5e, 0xfe, 0x27, 0x26, 0xb5, 0x36, 0x0c, 0x10, 0x39, 0xce, 0x7c, 0xb9, 0xab, 0xb7, 0x60, 0xa9, 0x4f, 0x37, 0xbb, 0x15, 0xa6, 0xdc, 0x08, 0x74, 0x16, 0x56 };
-        public static byte[] DecryptAES(byte[] buffer, byte[] customAesKey = null)
+        public static byte[] DecryptAES(byte[] buffer, byte[] aesKey)
         {
-            var aesKey = customAesKey ?? AES_KEY;
             var origSize = buffer.Length;
 
             var padded = AddPadding(buffer, true);
@@ -23,9 +21,8 @@ namespace LaPakguette.PakLib
             return RemovePadding(output, origSize);
         }
 
-        public static byte[] EncryptAES(byte[] buffer, byte[] customAesKey = null)
+        public static byte[] EncryptAES(byte[] buffer, byte[] aesKey)
         {
-            var aesKey = customAesKey ?? AES_KEY;
 
             var padded = AddPadding(buffer);
 

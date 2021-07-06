@@ -12,7 +12,7 @@ namespace LaPakguette.PakLib.Models
         private string _pakPath;
         internal const string mountpointFileName = "mp.txt";
         private Pak() { }
-        public Pak(string pakFilePath, byte[] AES_KEY = null)
+        public Pak(string pakFilePath, byte[] AES_KEY)
         {
             _pakPath = pakFilePath;
             using(var fs = new FileStream(pakFilePath, FileMode.Open))

@@ -11,10 +11,13 @@
 
   <ItemGroup>
     <PackageReference Include="Iconic.Zlib.Netstandard" Version="1.0.0" />
+    <PackageReference Include="OodleCompressionLib" Version="1.1.0" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\OodleWrapper\OodleCompressionLib\OodleCompressionLib.csproj" />
+    <Content Update="C:\Users\leanw\.nuget\packages\oodlecompressionlib\1.1.0\contentFiles\any\netstandard2.1\Ijwhost.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
 </Project>
