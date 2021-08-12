@@ -9,8 +9,4 @@
     <AssemblyName>LaPakguette</AssemblyName>
   </PropertyGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\LaPakguette.Lib\LaPakguette.Lib.csproj" />
-  </ItemGroup>
-
 </Project>

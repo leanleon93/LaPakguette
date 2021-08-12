@@ -6,11 +6,12 @@ using System.Text.RegularExpressions;
 
 namespace LaPakguette.PakLib.Models
 {
-    public partial class Pak
+    public class Pak
     {
         private readonly string _pakPath;
         private readonly byte[] AES_KEY;
         internal const string mountpointFileName = "lapakguette_mp.txt";
+
         private Pak(string folderPath, string mp, byte[] AES_KEY)
         {
             this.AES_KEY = AES_KEY;
@@ -84,6 +85,7 @@ namespace LaPakguette.PakLib.Models
 
         public byte[] ToByteArray(bool compress, bool encrypt, bool encryptIndex, CompressionMethod compressionMethod, byte[] AES_KEY = null)
         {
+            if(AES_KEY == null) AES_KEY = this.AES_KEY;
             IndexEncrypted = encryptIndex;
             using (var ms = new MemoryStream())
             {
@@ -163,7 +165,7 @@ namespace LaPakguette.PakLib.Models
             return result;
         }
 
-        public void ToFolder(string unpackDir)
+        public void ToFolder(string unpackDir = null)
         {
             if(unpackDir == null)
             {

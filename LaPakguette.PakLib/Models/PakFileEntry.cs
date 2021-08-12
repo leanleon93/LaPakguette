@@ -1,8 +1,6 @@
 ﻿namespace LaPakguette.PakLib.Models
 {
-    public partial class Pak
-    {
-        public class PakFileEntry
+    public class PakFileEntry
         {
             public PakFileEntry(string name, byte[] data)
             {
@@ -12,5 +10,4 @@
             public string Name { get; private set; }
             public byte[] Data { get; private set; }
         }
-    }
 }

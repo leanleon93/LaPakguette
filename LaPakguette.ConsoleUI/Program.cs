@@ -1,5 +1,7 @@
-﻿using LaPakguette.Lib;
+﻿using LaPakguette.PakLib;
+using LaPakguette.PakLib.Models;
 using System;
+using System.IO;
 
 namespace LaPakguette.ConsoleUI
 {
@@ -15,11 +17,17 @@ namespace LaPakguette.ConsoleUI
         private static readonly string _livepak2 = @"F:\Games\BNS_LIVE\BNSR\Content\Paks\Pak0-UFS_P-WindowsNoEditor.pak";
         private static readonly string _livepak3 = @"F:\Games\BNS_LIVE\BNSR\Content\Paks\Pak_F_LP_172-WindowsNoEditor.pak";
         
+        private static readonly string BASE64_AES_KEY = @"0uX3+U5iXv4nJrU2DBA5zny5q7dgqU83uxWm3Ah0FlY=";
+        private static byte[] _aesKey;
+
         static void Main(string[] args)
         {
-            var pakHandler = new PakHandler(_unrealPakPath);
-            pakHandler.Unpack(_livepak3);
-            pakHandler.Repack(_livepak3, true, false, true);
+            _aesKey = Convert.FromBase64String(BASE64_AES_KEY);
+            var pak = Pak.FromFile(_livepak3, _aesKey);
+
+            pak.ToFolder();
+            var repack = pak.ToByteArray(true, true, false, CompressionMethod.Oodle);
+            File.WriteAllBytes(_livepak3 + ".new", repack);
         }
     }
 }
