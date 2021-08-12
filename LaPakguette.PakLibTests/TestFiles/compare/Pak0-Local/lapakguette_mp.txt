@@ -1,0 +1,1 @@
+../../../BNSR/Content/local/NCSoft/data/

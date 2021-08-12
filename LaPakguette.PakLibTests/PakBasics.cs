@@ -1,14 +1,12 @@
 using LaPakguette.PakLib.Models;
 using NUnit.Framework;
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 
 namespace LaPakguette.PakLibTests
 {
-    //Unit tests used for simple library testing without any ui
     public class Tests
     {
         private string _testFileBasePath;
@@ -24,23 +22,135 @@ namespace LaPakguette.PakLibTests
         }
 
         [Test]
-        public void RepackTest()
+        public void SetupFromFileTest()
         {
+            var localPath = Path.Combine(_testFileBasePath, @"in\Pak0-Local.pak");
+            Assert.DoesNotThrow(() =>
+            {
+                var pakObj = Pak.FromFile(localPath, _aesKey);
+                Assert.NotNull(pakObj);
+            });
+        }
 
+        [Test]
+        public void SetupFromEncryptedFileTest()
+        {
+            var localPath = Path.Combine(_testFileBasePath, @"in\Pak0-Local_compress_encrypt.pak");
+            Assert.DoesNotThrow(() =>
+            {
+                var pakObj = Pak.FromFile(localPath, _aesKey);
+                Assert.NotNull(pakObj);
+            });
+        }
+
+        [Test]
+        public void SetupFromFolderEqualsFileTest()
+        {
+            var folderPath = Path.Combine(_testFileBasePath, @"in\Pak0-Local");
+            Assert.DoesNotThrow(() =>
+            {
+                var pakObj = Pak.FromFolder(folderPath, _aesKey);
+                Assert.NotNull(pakObj);
+                var outPath = Path.Combine(_testFileBasePath, @"result\Pak0-Local");
+                pakObj.ToFolder(outPath);
+                Assert.True(UnpackResultEqual());
+                Directory.Delete(outPath, true);
+            });
+        }
+
+        [Test]
+        public void SetupFromBufferTest()
+        {
+            var localPath = Path.Combine(_testFileBasePath, @"in\Pak0-Local.pak");
+            Assert.DoesNotThrow(() =>
+            {
+                var buffer = File.ReadAllBytes(localPath);
+                var pakObj = Pak.FromBuffer(buffer, _aesKey);
+                Assert.NotNull(pakObj);
+            });
+        }
+
+        [Test]
+        public void RepackTestOodle()
+        {
+            var localPath = Path.Combine(_testFileBasePath, @"in\Pak0-Local.pak");
+            Assert.DoesNotThrow(() =>
+            {
+                var pakObj = Pak.FromFile(localPath, _aesKey);
+                Assert.NotNull(pakObj);
+                var repackedBuffer = pakObj.ToByteArray(true, false, false, CompressionMethod.Oodle, _aesKey);
+                var comparePath = Path.Combine(_testFileBasePath, @"compare\Pak0-Local_compress.pak");
+                var origBuffer = File.ReadAllBytes(comparePath);
+                var outPath = Path.Combine(_testFileBasePath, @"result\Pak0-Local_compress.pak");
+                File.WriteAllBytes(outPath, repackedBuffer);
+                Assert.True(BuffersAreEqual(repackedBuffer, origBuffer));
+                File.Delete(outPath);
+            });
+        }
+
+        [Test]
+        public void RepackTestOodleEncrypted()
+        {
+            var localPath = Path.Combine(_testFileBasePath, @"in\Pak0-Local.pak");
+            Assert.DoesNotThrow(() =>
+            {
+                var pakObj = Pak.FromFile(localPath, _aesKey);
+                Assert.NotNull(pakObj);
+                var repackedBuffer = pakObj.ToByteArray(true, true, true, CompressionMethod.Oodle, _aesKey);
+                var comparePath = Path.Combine(_testFileBasePath, @"compare\Pak0-Local_compress_encrypt.pak");
+                var origBuffer = File.ReadAllBytes(comparePath);
+                var outPath = Path.Combine(_testFileBasePath, @"result\Pak0-Local_compress_encrypt.pak");
+                File.WriteAllBytes(outPath, repackedBuffer);
+                Assert.True(BuffersAreEqual(repackedBuffer, origBuffer));
+                File.Delete(outPath);
+            });
+        }
+
+        [Test]
+        public void RepackTestZlib()
+        {
+            var localPath = Path.Combine(_testFileBasePath, @"in\Pak0-Local.pak");
+            Assert.DoesNotThrow(() =>
+            {
+                var pakObj = Pak.FromFile(localPath, _aesKey);
+                Assert.NotNull(pakObj);
+                var repackedBuffer = pakObj.ToByteArray(true, true, true, CompressionMethod.Zlib, _aesKey);
+                var comparePath = Path.Combine(_testFileBasePath, @"compare\Pak0-Local_zlib.pak");
+                var origBuffer = File.ReadAllBytes(comparePath);
+                Assert.True(BuffersAreEqual(repackedBuffer, origBuffer));
+            });
+        }
+
+        [Test]
+        public void RepackTestNothing()
+        {
+            var localPath = Path.Combine(_testFileBasePath, @"in\Pak0-Local.pak");
+            Assert.DoesNotThrow(() =>
+            {
+                var pakObj = Pak.FromFile(localPath, _aesKey);
+                Assert.NotNull(pakObj);
+                var repackedBuffer = pakObj.ToByteArray(false, false, false, CompressionMethod.None, _aesKey);
+                var comparePath = Path.Combine(_testFileBasePath, @"compare\Pak0-Local_nothing.pak");
+                var origBuffer = File.ReadAllBytes(comparePath);
+                var outPath = Path.Combine(_testFileBasePath, @"result\Pak0-Local_nothing.pak");
+                File.WriteAllBytes(outPath, repackedBuffer);
+                Assert.True(BuffersAreEqual(repackedBuffer, origBuffer));
+                File.Delete(outPath);
+            });
         }
 
         [Test]
         public void UnpackTest()
         {
             var localPath = Path.Combine(_testFileBasePath, @"in\Pak0-Local.pak");
-            var pakObj = new Pak(localPath, _aesKey);
+            var pakObj = Pak.FromFile(localPath, _aesKey);
             var outPath = Path.Combine(_testFileBasePath, @"result\Pak0-Local");
-            pakObj.DumpAllFiles(outPath);
-            Assert.True(CompareUnpackResult());
+            pakObj.ToFolder(outPath);
+            Assert.True(UnpackResultEqual());
             Directory.Delete(outPath, true);
         }
 
-        private bool CompareUnpackResult()
+        private bool UnpackResultEqual()
         {
             var outPath = Path.Combine(_testFileBasePath, @"result\Pak0-Local");
             var comparePath = Path.Combine(_testFileBasePath, @"compare\Pak0-Local");

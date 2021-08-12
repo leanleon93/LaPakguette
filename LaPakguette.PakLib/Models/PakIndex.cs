@@ -58,16 +58,17 @@ namespace LaPakguette.PakLib.Models
                     indexData = ms.ToArray();
                 }
             }
-            var nonPaddedSize = indexData.Length;
-            byte[] hashWorthyData = new byte[nonPaddedSize];
+            byte[] hash;
             if(encryptIndex)
             {
-                indexData = AesHandler.EncryptAES(indexData, AES_KEY);
-                Array.Copy(indexData, 0, hashWorthyData, 0, hashWorthyData.Length);
+                (indexData, hash) = AesHandler.EncryptAES(indexData, AES_KEY);
+            }
+            else
+            {
+                hash = AesHandler.SHA1Hash(indexData);
             }
             bw.Write(indexData);
             var indexSize = bw.BaseStream.Position - indexOffset;
-            var hash = PakDataRecord.GetHashSHA1(encryptIndex ? hashWorthyData : indexData);
             return (indexOffset, indexSize, hash);
         }
     }

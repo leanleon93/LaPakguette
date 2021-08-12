@@ -1,0 +1,2 @@
+"C:\Users\leanw\source\repos\LaPakguette\LaPakguette.PakLibTests\TestFiles\compare\new\Pak0-Local\config64.dat" "../../../BNSR/Content/local/NCSoft/data/config64.dat"
+"C:\Users\leanw\source\repos\LaPakguette\LaPakguette.PakLibTests\TestFiles\compare\new\Pak0-Local\xml64.dat" "../../../BNSR/Content/local/NCSoft/data/xml64.dat"

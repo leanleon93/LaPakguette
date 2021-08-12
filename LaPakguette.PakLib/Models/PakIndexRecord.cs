@@ -7,6 +7,11 @@ namespace LaPakguette.PakLib.Models
     public class PakIndexRecord
     {
 
+        internal PakIndexRecord(string filename)
+        {
+            FileName = filename;
+        }
+
         public PakIndexRecord(BinaryReader br)
         {
             FileNameSize = br.ReadUInt32();
@@ -20,8 +25,9 @@ namespace LaPakguette.PakLib.Models
 
         internal void WriteToStream(BinaryWriter bw)
         {
-            bw.Write(FileNameSize);
-            bw.Write(Encoding.UTF8.GetBytes(FileName));
+            var filenameBytes = Encoding.UTF8.GetBytes(FileName);
+            bw.Write((uint)(filenameBytes.Length + 1));
+            bw.Write(filenameBytes);
             bw.Write((byte)0);
             Metadata.WriteToStream(bw);
         }

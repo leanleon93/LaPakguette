@@ -53,6 +53,10 @@ namespace LaPakguette.PakLib.Models
                     bw.Write(block.CompressedDataEndOffset);
                 }
             }
+            else
+            {
+                UncompressedCompressionBlockSize = 0;
+            }
             bw.Write((byte)(IsEncrypted ? 1 : 0));
             bw.Write(UncompressedCompressionBlockSize);
         }

@@ -8,7 +8,12 @@ namespace LaPakguette.PakLib.Models
 {
     public class PakDataRecord
     {
-        private const int maxChunkSize = 0x10000;
+        private const int maxChunkSize = 65536;
+
+        internal PakDataRecord(byte[] data)
+        {
+            Data = data;
+        }
 
         public PakDataRecord(BinaryReader br, string[] compressionMethods, byte[] AES_KEY)
         {
@@ -20,7 +25,9 @@ namespace LaPakguette.PakLib.Models
             br.BaseStream.Position = pos;
             File.WriteAllBytes(@"C:\Users\leanw\Documents\pak.data", Data);
             DecryptData(AES_KEY);
+            File.WriteAllBytes(@"C:\Users\leanw\Documents\pak.data.dec", Data);
             DecompressData((int)metadataSize, compressionMethods);
+            File.WriteAllBytes(@"C:\Users\leanw\Documents\pak.data.deco", Data);
         }
 
         private void DecryptData(byte[] AES_KEY)
@@ -39,10 +46,10 @@ namespace LaPakguette.PakLib.Models
             if (encrypt)
             {
                 if (AES_KEY == null) throw new Exception("No aes key provided. File can not be encrypted.");
-                Data = AesHandler.EncryptAES(Data, AES_KEY);
+                (Data, _) = AesHandler.EncryptAES(Data, AES_KEY);
             }
         }
-        private void CompressData(bool compress, string[] compressionMethods)
+        private void CompressData(bool compress, string[] compressionMethods, bool encrypt)
         {
             if(compress)
             {
@@ -60,18 +67,31 @@ namespace LaPakguette.PakLib.Models
                         chunks[i] = new byte[Math.Min(maxChunkSize, Data.Length - i * maxChunkSize)];
                         
                         Array.Copy(Data, i * maxChunkSize, chunks[i], 0, chunks[i].Length);
+                        int chunkSize = 0;
                         if (compressionMethod == "Oodle" || compressionMethod == "oodle")
                         {
-                            chunks[i] = Oodle.Compress(chunks[i], OodleFormat.Mermaid, OodleCompressionLevel.Optimal2);
+                            var compressedData = Oodle.Compress(chunks[i], OodleFormat.Kraken, OodleCompressionLevel.Normal);
+                            chunkSize = compressedData.Length;
+                            if (encrypt)
+                            {
+                                compressedData = AesHandler.AddPadding(compressedData);
+                            }
+                            chunks[i] = compressedData;
                         }
                         if (compressionMethod == "Zlib" || compressionMethod == "zlib")
                         {
-                            chunks[i] = Ionic.Zlib.ZlibStream.CompressBuffer(chunks[i]);
+                            var compressedData = Ionic.Zlib.ZlibStream.CompressBuffer(chunks[i]);
+                            chunkSize = compressedData.Length;
+                            if (encrypt)
+                            {
+                                compressedData = AesHandler.AddPadding(compressedData);
+                            }
+                            chunks[i] = AesHandler.AddPadding(compressedData);
                         }
                         Metadata.CompressionBlocks[i] = new CompressionBlock
                         {
                             CompressedDataStartOffset = offset,
-                            CompressedDataEndOffset = offset + (ulong)chunks[i].Length
+                            CompressedDataEndOffset = offset + (ulong)chunkSize
                         };
                         offset += (ulong)chunks[i].Length;
                     }
@@ -85,7 +105,7 @@ namespace LaPakguette.PakLib.Models
                     
                     if (compressionMethod == "Oodle" || compressionMethod == "oodle")
                     {
-                        Data = Oodle.Compress(Data, OodleFormat.Mermaid, OodleCompressionLevel.Optimal2);
+                        Data = Oodle.Compress(Data, OodleFormat.Kraken, OodleCompressionLevel.Normal);
                     }
                     if (compressionMethod == "Zlib" || compressionMethod == "zlib")
                     {
@@ -154,27 +174,20 @@ namespace LaPakguette.PakLib.Models
             var dataOffset = (ulong)bw.BaseStream.Position;
             Metadata.DataRecordOffset = (ulong)0;
             Metadata.UncompressedSize = (ulong)Data.Length;
+            compress = compress && Metadata.UncompressedSize > 200000;
             Metadata.CompressionMethod = compress ? (uint)1 : (uint)0;
             Metadata.IsEncrypted = encrypt;
-            CompressData(compress, compressionMethods);
+            CompressData(compress, compressionMethods, encrypt);
             Metadata.DataRecordSize = (ulong)Data.Length;
             EncryptData(encrypt, AES_KEY);
             Metadata.PaddedDataSize = (ulong)Data.Length;
             var hashWorthyData = new byte[Metadata.DataRecordSize];
             Array.Copy(Data, hashWorthyData, hashWorthyData.Length);
-            Metadata.DataRecordSha1Hash = GetHashSHA1(hashWorthyData);
+            Metadata.DataRecordSha1Hash = AesHandler.SHA1Hash(hashWorthyData);
             Metadata.WriteToStream(bw);
             bw.Write(Data);
             Metadata.DataRecordOffset = dataOffset;
             return this.Metadata;
-        }
-
-        internal static byte[] GetHashSHA1(byte[] data)
-        {
-            using (var sha1 = new System.Security.Cryptography.SHA1CryptoServiceProvider())
-            {
-                return sha1.ComputeHash(data);
-            }
         }
 
         private byte[] Combine(byte[][] arrays)

@@ -2,49 +2,87 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
 
 namespace LaPakguette.PakLib.Models
 {
-    public class Pak
+    public partial class Pak
     {
-        private string _pakPath;
-        internal const string mountpointFileName = "mp.txt";
-        private Pak() { }
-        public Pak(string pakFilePath, byte[] AES_KEY)
+        private readonly string _pakPath;
+        private readonly byte[] AES_KEY;
+        internal const string mountpointFileName = "lapakguette_mp.txt";
+        private Pak(string folderPath, string mp, byte[] AES_KEY)
+        {
+            this.AES_KEY = AES_KEY;
+
+        }
+
+        private Pak(string pakFilePath, byte[] AES_KEY)
         {
             _pakPath = pakFilePath;
+            this.AES_KEY = AES_KEY;
             using(var fs = new FileStream(pakFilePath, FileMode.Open))
             {
-                using (var br = new BinaryReader(fs))
+                InitPakFromStream(fs);
+            }
+        }
+
+        private Pak(byte[] pakFileBuffer, byte[] AES_KEY)
+        {
+            this.AES_KEY = AES_KEY;
+            using(var ms = new MemoryStream(pakFileBuffer))
+            {
+                InitPakFromStream(ms);
+            }
+        }
+
+        private void InitPakFromStream(Stream s)
+        {
+            using (var br = new BinaryReader(s))
+            {
+                br.BaseStream.Position = br.BaseStream.Length - 206;
+                IndexEncrypted = br.ReadByte() == 1;
+                Footer = new PakFooter(br);
+                Index = new PakIndex(br, (long)Footer.IndexOffset, (int)Footer.IndexSize, IndexEncrypted, AES_KEY);
+                DataRecords = new PakDataRecord[Index.RecordCount];
+                for(int i = 0; i < Index.RecordCount; i++)
                 {
-                    br.BaseStream.Position = br.BaseStream.Length - 206;
-                    IndexEncrypted = br.ReadByte() == 1;
-                    Footer = new PakFooter(br);
-                    Index = new PakIndex(br, (long)Footer.IndexOffset, (int)Footer.IndexSize, IndexEncrypted, AES_KEY);
-                    DataRecords = new PakDataRecord[Index.RecordCount];
-                    for(int i = 0; i < Index.RecordCount; i++)
-                    {
-                        br.BaseStream.Position = (long)Index.Records[i].Metadata.DataRecordOffset;
-                        DataRecords[i] = new PakDataRecord(br, Footer.CompressionMethods, AES_KEY);
-                    }
+                    br.BaseStream.Position = (long)Index.Records[i].Metadata.DataRecordOffset;
+                    DataRecords[i] = new PakDataRecord(br, Footer.CompressionMethods, AES_KEY);
                 }
             }
         }
 
-        public byte[] ToByteArray(bool compress, bool encrypt, bool encryptIndex, string[] compressionMethods, byte[] AES_KEY = null)
+        public static Pak FromFile(string pakFilePath, byte[] AES_KEY)
+        {
+            return new Pak(pakFilePath, AES_KEY);
+        }
+
+        public static Pak FromBuffer(byte[] pakFileBuffer, byte[] AES_KEY)
+        {
+            return new Pak(pakFileBuffer, AES_KEY);
+        }
+
+        public static Pak FromFolder(string folderPath, byte[] AES_KEY = null)
+        {
+            var mpPath = Path.Combine(folderPath, mountpointFileName);
+            if (!File.Exists(mpPath)) throw new FileNotFoundException("No mountpoint file present.");
+            var mp = File.ReadAllText(mpPath);
+            return new Pak(folderPath, mp, AES_KEY);
+        }
+
+        public byte[] ToByteArray(bool compress, bool encrypt, bool encryptIndex, CompressionMethod compressionMethod, byte[] AES_KEY = null)
         {
             using (var ms = new MemoryStream())
             {
                 using (var bw = new BinaryWriter(ms))
                 {
-                    Footer.CompressionMethods = compressionMethods;
+                    Footer.CompressionMethods = compressionMethod != CompressionMethod.None ? new string[] { compressionMethod.GetName() } : new string[0];
                     for (int i = 0; i < Index.Records.Length; i++)
                     {
                         PakIndexRecord indexRecord = Index.Records[i];
                         PakDataRecord dataRecord = DataRecords[i];
-                        var metadata = dataRecord.WriteToStream(bw, compress, encrypt, compressionMethods, AES_KEY);
+                        var metadata = dataRecord.WriteToStream(bw, compress, encrypt, Footer.CompressionMethods, AES_KEY);
                         indexRecord.Metadata = metadata;
                     }
                     var (indexOffset, indexSize, hash) = Index.WriteToStream(bw, encryptIndex, AES_KEY);
@@ -57,17 +95,63 @@ namespace LaPakguette.PakLib.Models
                     return ms.ToArray();
                 }
             }
-            
         }
 
-        public static Pak CreateFromFolder(string folderPath)
+        public PakFileEntry GetFile(string filename)
         {
-            var mpPath = Path.Combine(folderPath, mountpointFileName);
-            if (!File.Exists(mpPath)) throw new FileNotFoundException("No mountpoint file present.");
-            return new Pak();
+            var indexOf = GetFileIndex(filename);
+            var file = DataRecords[indexOf].Data;
+            return new PakFileEntry(filename, file);
         }
 
-        public void DumpAllFiles(string unpackDir = null)
+        public void ReplaceFile(string filename, byte[] newData)
+        {
+            var indexOf = GetFileIndex(filename);
+            DataRecords[indexOf].Data = newData;
+        }
+
+        public void RemoveFile(string filename)
+        {
+            var indexOf = GetFileIndex(filename);
+            DataRecords.RemoveAt(indexOf);
+            Index.Records.RemoveAt(indexOf);
+        }
+
+        public void AddFile(PakFileEntry newEntry)
+        {
+            DataRecords.Add(new PakDataRecord(newEntry.Data));
+            Index.Records.Add(new PakIndexRecord(newEntry.Name));
+        }
+
+        private int GetFileIndex(string filename)
+        {
+            var indexRecord = Index.Records.FirstOrDefault(x => x.FileName == filename);
+            return Array.IndexOf<PakIndexRecord>(Index.Records, indexRecord);
+        }
+
+        public List<PakFileEntry> GetFiles(List<string> filenames)
+        {
+            var result = new List<PakFileEntry>();
+            foreach (var filename in filenames)
+            {
+                result.Add(GetFile(filename));
+            }
+            return result;
+        }
+
+        public List<PakFileEntry> GetAllFiles()
+        {
+            var result = new List<PakFileEntry>();
+            for(int i = 0; i < Index.Records.Length; i++)
+            {
+                var indexRecord = Index.Records[i];
+                var dataRecord = DataRecords[i];
+                result.Add(new PakFileEntry(indexRecord.FileName, dataRecord.Data));
+            }
+            return result;
+        }
+
+        public void ToFolder(string unpackDir)
         {
             if(unpackDir == null)
             {
@@ -85,34 +169,9 @@ namespace LaPakguette.PakLib.Models
             File.WriteAllText(mpPath, Index.MountPoint);
         }
 
-        public void DumpFile(string filename, string unpackDir = null)
+        public string GetMountPoint()
         {
-            if (unpackDir == null)
-            {
-                unpackDir = _pakPath.Replace(Regex.Match(_pakPath, @"\..*").Value, "");
-            }
-            Directory.CreateDirectory(unpackDir);
-            var indexRecord = Index.Records.Where(x => x.FileName == filename).FirstOrDefault();
-            var indexOf = Array.IndexOf<PakIndexRecord>(Index.Records, indexRecord);
-            var file = DataRecords[indexOf].Data;
-            var exportPath = Path.Combine(unpackDir, filename);
-            Directory.CreateDirectory(Path.GetDirectoryName(exportPath));
-            File.WriteAllBytes(exportPath, file);
-            var mpPath = Path.Combine(unpackDir, mountpointFileName);
-            File.WriteAllText(mpPath, Index.MountPoint);
-        }
-
-        public void DumpFiles(List<string> filenames, string unpackDir = null)
-        {
-            foreach(var filename in filenames)
-            {
-                var indexRecords = Index.Records.Where(x => x.FileName.EndsWith(filename)).ToList();
-                foreach(var foundFile in indexRecords)
-                {
-                    DumpFile(foundFile.FileName, unpackDir);
-                }
-            }
-            
+            return Index.MountPoint;
         }
 
         public List<string> GetAllFilenames()
@@ -120,9 +179,9 @@ namespace LaPakguette.PakLib.Models
             return Index.Records.Select(x => x.FileName).ToList();
         }
 
-        public PakDataRecord[] DataRecords { get; set; }
-        public bool IndexEncrypted { get; set; }
-        public PakIndex Index { get; set; }
-        public PakFooter Footer { get; set; }
+        private PakDataRecord[] DataRecords { get; set; }
+        private bool IndexEncrypted { get; set; }
+        private PakIndex Index { get; set; }
+        private PakFooter Footer { get; set; }
     }
 }

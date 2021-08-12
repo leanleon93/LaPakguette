@@ -3,9 +3,9 @@ using System.Security.Cryptography;
 
 namespace LaPakguette.PakLib
 {
-    public static class AesHandler
+    internal static class AesHandler
     {
-        public static byte[] DecryptAES(byte[] buffer, byte[] aesKey)
+        internal static byte[] DecryptAES(byte[] buffer, byte[] aesKey)
         {
             var origSize = buffer.Length;
 
@@ -21,7 +21,7 @@ namespace LaPakguette.PakLib
             return RemovePadding(output, origSize);
         }
 
-        public static byte[] EncryptAES(byte[] buffer, byte[] aesKey)
+        internal static (byte[], byte[]) EncryptAES(byte[] buffer, byte[] aesKey)
         {
 
             var padded = AddPadding(buffer);
@@ -33,7 +33,13 @@ namespace LaPakguette.PakLib
             ICryptoTransform encrypt = aes.CreateEncryptor(aesKey, new byte[16]);
             encrypt.TransformBlock(padded, 0, padded.Length, output, 0);
 
-            return output;
+            return (output, SHA1Hash(padded));
+        }
+
+        internal static byte[] SHA1Hash(byte[] data)
+        {
+            using var sha1 = new SHA1CryptoServiceProvider();
+            return sha1.ComputeHash(data);
         }
 
         private static byte[] RemovePadding(byte[] padded, int origSize)
@@ -45,7 +51,7 @@ namespace LaPakguette.PakLib
             return output;
         }
 
-        private static byte[] AddPadding(byte[] buffer, bool decrypt = false)
+        internal static byte[] AddPadding(byte[] buffer, bool decrypt = false)
         {
             var sizePadded = CalculatePaddedSize(buffer.Length, decrypt);
             if (sizePadded == buffer.Length) return buffer;
