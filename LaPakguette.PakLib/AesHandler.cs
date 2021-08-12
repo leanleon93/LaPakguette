@@ -51,8 +51,9 @@ namespace LaPakguette.PakLib
             return output;
         }
 
-        internal static byte[] AddPadding(byte[] buffer, bool decrypt = false)
+        internal static byte[] AddPadding(byte[] buffer, bool decrypt = false, byte[] padData = null)
         {
+            if(padData == null) padData = buffer;
             var sizePadded = CalculatePaddedSize(buffer.Length, decrypt);
             if (sizePadded == buffer.Length) return buffer;
             byte[] temp = new byte[sizePadded];
@@ -61,8 +62,8 @@ namespace LaPakguette.PakLib
             var padOffset = buffer.Length;
             while(remainingLength != 0)
             {
-                var copyLength = remainingLength > buffer.Length ? buffer.Length : remainingLength;
-                Array.Copy(buffer, 0, temp, padOffset, copyLength);
+                var copyLength = remainingLength > padData.Length ? padData.Length : remainingLength;
+                Array.Copy(padData, 0, temp, padOffset, copyLength);
                 remainingLength -= copyLength;
                 padOffset += copyLength;
             }

@@ -14,7 +14,18 @@ namespace LaPakguette.PakLib.Models
         private Pak(string folderPath, string mp, byte[] AES_KEY)
         {
             this.AES_KEY = AES_KEY;
-
+            this.Footer = new PakFooter();
+            this.Index = new PakIndex(mp);
+            this.DataRecords = new PakDataRecord[0];
+            var files = Directory.GetFiles(folderPath, "*.*", SearchOption.AllDirectories);
+            foreach(var file in files)
+            {
+                var info = new FileInfo(file);
+                var relPath = Path.GetRelativePath(folderPath, info.FullName);
+                if(relPath == mountpointFileName) continue;
+                relPath = relPath.Replace('\\', '/');
+                AddFile(new PakFileEntry(relPath, File.ReadAllBytes(file)));
+            }    
         }
 
         private Pak(string pakFilePath, byte[] AES_KEY)
@@ -73,6 +84,7 @@ namespace LaPakguette.PakLib.Models
 
         public byte[] ToByteArray(bool compress, bool encrypt, bool encryptIndex, CompressionMethod compressionMethod, byte[] AES_KEY = null)
         {
+            IndexEncrypted = encryptIndex;
             using (var ms = new MemoryStream())
             {
                 using (var bw = new BinaryWriter(ms))
@@ -113,14 +125,14 @@ namespace LaPakguette.PakLib.Models
         public void RemoveFile(string filename)
         {
             var indexOf = GetFileIndex(filename);
-            DataRecords.RemoveAt(indexOf);
-            Index.Records.RemoveAt(indexOf);
+            DataRecords = DataRecords.RemoveAt(indexOf);
+            Index.Records = Index.Records.RemoveAt(indexOf);
         }
 
         public void AddFile(PakFileEntry newEntry)
         {
-            DataRecords.Add(new PakDataRecord(newEntry.Data));
-            Index.Records.Add(new PakIndexRecord(newEntry.Name));
+            DataRecords = DataRecords.Add(new PakDataRecord(newEntry.Data));
+            Index.Records = Index.Records.Add(new PakIndexRecord(newEntry.Name));
         }
 
         private int GetFileIndex(string filename)

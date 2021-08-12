@@ -23,11 +23,11 @@ namespace LaPakguette.PakLib.Models
             MetadataSize = metadataSize;
             Data = br.ReadBytes((int)Metadata.PaddedDataSize);
             br.BaseStream.Position = pos;
-            File.WriteAllBytes(@"C:\Users\leanw\Documents\pak.data", Data);
+            //File.WriteAllBytes(@"C:\Users\leanw\Documents\pak.data", Data);
             DecryptData(AES_KEY);
-            File.WriteAllBytes(@"C:\Users\leanw\Documents\pak.data.dec", Data);
+            //File.WriteAllBytes(@"C:\Users\leanw\Documents\pak.data.dec", Data);
             DecompressData((int)metadataSize, compressionMethods);
-            File.WriteAllBytes(@"C:\Users\leanw\Documents\pak.data.deco", Data);
+            //File.WriteAllBytes(@"C:\Users\leanw\Documents\pak.data.deco", Data);
         }
 
         private void DecryptData(byte[] AES_KEY)
@@ -67,27 +67,21 @@ namespace LaPakguette.PakLib.Models
                         chunks[i] = new byte[Math.Min(maxChunkSize, Data.Length - i * maxChunkSize)];
                         
                         Array.Copy(Data, i * maxChunkSize, chunks[i], 0, chunks[i].Length);
-                        int chunkSize = 0;
+                        byte[] compressedData = new byte[0];
                         if (compressionMethod == "Oodle" || compressionMethod == "oodle")
                         {
-                            var compressedData = Oodle.Compress(chunks[i], OodleFormat.Kraken, OodleCompressionLevel.Normal);
-                            chunkSize = compressedData.Length;
-                            if (encrypt)
-                            {
-                                compressedData = AesHandler.AddPadding(compressedData);
-                            }
-                            chunks[i] = compressedData;
+                            compressedData = Oodle.Compress(chunks[i], OodleFormat.Kraken, OodleCompressionLevel.Normal);
                         }
                         if (compressionMethod == "Zlib" || compressionMethod == "zlib")
                         {
-                            var compressedData = Ionic.Zlib.ZlibStream.CompressBuffer(chunks[i]);
-                            chunkSize = compressedData.Length;
-                            if (encrypt)
-                            {
-                                compressedData = AesHandler.AddPadding(compressedData);
-                            }
-                            chunks[i] = AesHandler.AddPadding(compressedData);
+                            compressedData = Ionic.Zlib.ZlibStream.CompressBuffer(chunks[i]);
                         }
+                        var chunkSize = compressedData.Length;
+                        if (encrypt)
+                        {
+                            compressedData = AesHandler.AddPadding(compressedData, false, i == 0 ? compressedData : chunks[0]);
+                        }
+                        chunks[i] = compressedData;
                         Metadata.CompressionBlocks[i] = new CompressionBlock
                         {
                             CompressedDataStartOffset = offset,

@@ -53,7 +53,7 @@ namespace LaPakguette.PakLibTests
                 Assert.NotNull(pakObj);
                 var outPath = Path.Combine(_testFileBasePath, @"result\Pak0-Local");
                 pakObj.ToFolder(outPath);
-                Assert.True(UnpackResultEqual());
+                Assert.True(UnpackResultEqual(outPath));
                 Directory.Delete(outPath, true);
             });
         }
@@ -107,7 +107,7 @@ namespace LaPakguette.PakLibTests
         }
 
         [Test]
-        public void RepackTestZlib()
+        public void RepackTestZlibEncryptedNoException() //Tested with the unpack zlib test
         {
             var localPath = Path.Combine(_testFileBasePath, @"in\Pak0-Local.pak");
             Assert.DoesNotThrow(() =>
@@ -115,9 +115,7 @@ namespace LaPakguette.PakLibTests
                 var pakObj = Pak.FromFile(localPath, _aesKey);
                 Assert.NotNull(pakObj);
                 var repackedBuffer = pakObj.ToByteArray(true, true, true, CompressionMethod.Zlib, _aesKey);
-                var comparePath = Path.Combine(_testFileBasePath, @"compare\Pak0-Local_zlib.pak");
-                var origBuffer = File.ReadAllBytes(comparePath);
-                Assert.True(BuffersAreEqual(repackedBuffer, origBuffer));
+                var outPath = Path.Combine(_testFileBasePath, @"result\Pak0-Local_zlib.pak");
             });
         }
 
@@ -146,13 +144,23 @@ namespace LaPakguette.PakLibTests
             var pakObj = Pak.FromFile(localPath, _aesKey);
             var outPath = Path.Combine(_testFileBasePath, @"result\Pak0-Local");
             pakObj.ToFolder(outPath);
-            Assert.True(UnpackResultEqual());
+            Assert.True(UnpackResultEqual(outPath));
             Directory.Delete(outPath, true);
         }
 
-        private bool UnpackResultEqual()
+        [Test]
+        public void UnpackZlibTest()
         {
-            var outPath = Path.Combine(_testFileBasePath, @"result\Pak0-Local");
+            var localPath = Path.Combine(_testFileBasePath, @"in\Pak0-Local_zlib.pak");
+            var pakObj = Pak.FromFile(localPath, _aesKey);
+            var outPath = Path.Combine(_testFileBasePath, @"result\Pak0-Local_zlib");
+            pakObj.ToFolder(outPath);
+            Assert.True(UnpackResultEqual(outPath));
+            Directory.Delete(outPath, true);
+        }
+
+        private bool UnpackResultEqual(string outPath)
+        {
             var comparePath = Path.Combine(_testFileBasePath, @"compare\Pak0-Local");
             var outFiles = Directory.GetFiles(outPath);
             var compareFiles = Directory.GetFiles(comparePath);

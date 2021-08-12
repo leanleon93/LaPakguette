@@ -6,6 +6,9 @@ namespace LaPakguette.PakLib.Models
 {
     public class PakFooter
     {
+        internal PakFooter()
+        {
+        }
         public PakFooter(BinaryReader br)
         {
             var footerStart = br.BaseStream.Length - 205;
