@@ -196,6 +196,7 @@ namespace LaPakguette.FormsGUI
 
         private CompressionMethod GetCompressionMethod()
         {
+            if (!compressCheckBox.Checked) return CompressionMethod.None;
             if (oodleCompression.Checked) return CompressionMethod.Oodle;
             if (zlibCompression.Checked) return CompressionMethod.Zlib;
             return CompressionMethod.None;
