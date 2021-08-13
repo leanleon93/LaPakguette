@@ -255,6 +255,11 @@ namespace LaPakguette.FormsGUI
 
         private void showFilesButton_Click(object sender, EventArgs e)
         {
+            if(_pak == null)
+            {
+                MessageBox.Show("Please select a .pak file first");
+                return;
+            }
             if (_fileSelectionForm == null || _fileSelectionForm.Text == "")
             {
                 _fileSelectionForm = new FileSelectionForm();
