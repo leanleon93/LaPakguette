@@ -1,12 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace LaPakguette.FormsGUI
+﻿namespace LaPakguette.FormsGUI
 {
     public class Settings
     {
-        public string UnrealPakPath { get; set; }
+        public Settings()
+        {
+            AesKeyBase64 = "";
+        }
         public string LastSelectedPak { get; set; }
+        public string AesKeyBase64 { get; set; }
     }
 }

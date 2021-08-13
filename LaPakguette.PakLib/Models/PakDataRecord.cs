@@ -13,6 +13,7 @@ namespace LaPakguette.PakLib.Models
         internal PakDataRecord(byte[] data)
         {
             Data = data;
+            Metadata = new PakFileMetadata();
         }
 
         public PakDataRecord(BinaryReader br, string[] compressionMethods, byte[] AES_KEY)

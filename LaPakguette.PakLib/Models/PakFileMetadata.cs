@@ -5,6 +5,7 @@ namespace LaPakguette.PakLib.Models
 {
     public class PakFileMetadata
     {
+        public PakFileMetadata(){}
         public PakFileMetadata(BinaryReader br)
         {
             DataRecordOffset = br.ReadUInt64();

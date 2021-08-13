@@ -10,7 +10,7 @@ namespace LaPakguette.PakLib.Models
     {
         private readonly string _pakPath;
         private readonly byte[] AES_KEY;
-        internal const string mountpointFileName = "lapakguette_mp.txt";
+        public const string MountpointFileName = "lapakguette_mp.txt";
 
         private Pak(string folderPath, string mp, byte[] AES_KEY)
         {
@@ -23,7 +23,7 @@ namespace LaPakguette.PakLib.Models
             {
                 var info = new FileInfo(file);
                 var relPath = Path.GetRelativePath(folderPath, info.FullName);
-                if(relPath == mountpointFileName) continue;
+                if(relPath == MountpointFileName) continue;
                 relPath = relPath.Replace('\\', '/');
                 AddFile(new PakFileEntry(relPath, File.ReadAllBytes(file)));
             }    
@@ -77,7 +77,7 @@ namespace LaPakguette.PakLib.Models
 
         public static Pak FromFolder(string folderPath, byte[] AES_KEY = null)
         {
-            var mpPath = Path.Combine(folderPath, mountpointFileName);
+            var mpPath = Path.Combine(folderPath, MountpointFileName);
             if (!File.Exists(mpPath)) throw new FileNotFoundException("No mountpoint file present.");
             var mp = File.ReadAllText(mpPath);
             return new Pak(folderPath, mp, AES_KEY);
@@ -111,9 +111,23 @@ namespace LaPakguette.PakLib.Models
             }
         }
 
+        public void AddOrReplaceFile(PakFileEntry newEntry)
+        {
+            var indexOf = GetFileIndex(newEntry.Name);
+            if(indexOf == -1)
+            {
+                AddFile(newEntry);
+            }
+            else
+            {
+                ReplaceFile(newEntry.Name, newEntry.Data);
+            }
+        }
+
         public PakFileEntry GetFile(string filename)
         {
             var indexOf = GetFileIndex(filename);
+            if(indexOf == -1) return null;
             var file = DataRecords[indexOf].Data;
             return new PakFileEntry(filename, file);
         }
@@ -121,12 +135,14 @@ namespace LaPakguette.PakLib.Models
         public void ReplaceFile(string filename, byte[] newData)
         {
             var indexOf = GetFileIndex(filename);
+            if(indexOf == -1) return;
             DataRecords[indexOf].Data = newData;
         }
 
         public void RemoveFile(string filename)
         {
             var indexOf = GetFileIndex(filename);
+            if(indexOf == -1) return;
             DataRecords = DataRecords.RemoveAt(indexOf);
             Index.Records = Index.Records.RemoveAt(indexOf);
         }
@@ -140,6 +156,7 @@ namespace LaPakguette.PakLib.Models
         private int GetFileIndex(string filename)
         {
             var indexRecord = Index.Records.FirstOrDefault(x => x.FileName == filename);
+            if(indexRecord == null) return -1;
             return Array.IndexOf<PakIndexRecord>(Index.Records, indexRecord);
         }
 
@@ -148,7 +165,9 @@ namespace LaPakguette.PakLib.Models
             var result = new List<PakFileEntry>();
             foreach (var filename in filenames)
             {
-                result.Add(GetFile(filename));
+                var file = GetFile(filename);
+                if(file != null)
+                    result.Add(file);
             }
             return result;
         }
@@ -165,22 +184,30 @@ namespace LaPakguette.PakLib.Models
             return result;
         }
 
-        public void ToFolder(string unpackDir = null)
+        public bool ToFolder(string unpackDir = null)
         {
-            if(unpackDir == null)
+            try
             {
-                unpackDir = _pakPath.Replace(Regex.Match(_pakPath, @"\..*").Value, "");
+                if(unpackDir == null)
+                {
+                    unpackDir = _pakPath.Replace(Regex.Match(_pakPath, @"\..*").Value, "");
+                }
+                Directory.CreateDirectory(unpackDir);
+                for(int i = 0; i < Index.RecordCount; i++)
+                {
+                    var filename = Index.Records[i].FileName;
+                    var exportPath = Path.Combine(unpackDir, filename);
+                    Directory.CreateDirectory(Path.GetDirectoryName(exportPath));
+                    File.WriteAllBytes(exportPath, DataRecords[i].Data);
+                }
+                var mpPath = Path.Combine(unpackDir, MountpointFileName);
+                File.WriteAllText(mpPath, Index.MountPoint);
+                return true;
             }
-            Directory.CreateDirectory(unpackDir);
-            for(int i = 0; i < Index.RecordCount; i++)
+            catch
             {
-                var filename = Index.Records[i].FileName;
-                var exportPath = Path.Combine(unpackDir, filename);
-                Directory.CreateDirectory(Path.GetDirectoryName(exportPath));
-                File.WriteAllBytes(exportPath, DataRecords[i].Data);
+                return false;
             }
-            var mpPath = Path.Combine(unpackDir, mountpointFileName);
-            File.WriteAllText(mpPath, Index.MountPoint);
         }
 
         public string GetMountPoint()

@@ -1,8 +1,10 @@
-﻿using LaPakguette.Lib;
-using LaPakguette.Lib.Models;
+﻿using LaPakguette.PakLib.Models;
 using Newtonsoft.Json;
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
@@ -10,113 +12,72 @@ namespace LaPakguette.FormsGUI
 {
     public partial class MainForm : Form
     {
-        private string _uePakPath, _pakPath;
-        private readonly string _settingsPath = Directory.GetCurrentDirectory() + "\\settings.json";
-        private readonly string _cryptoPath = Directory.GetCurrentDirectory() + "\\Crypto.json";
-        private PakHandler _pakHandler;
+        private string _pakPath;
+        private readonly string _settingsPath = Directory.GetCurrentDirectory() + "\\LaPakguette.usersettings.json";
+        private Pak _pak;
 
         private Settings _settings;
-
+        private byte[] _aesKey;
         public MainForm()
         {
-            if (!File.Exists(_cryptoPath))
-            {
-                MessageBox.Show("Crypto file does not exist.\nCreated a new Crypto.json\nPlease fill with AES key.", "Crypto error");
-                var cryptoModel = new CryptoModel()
-                {
-                    BEnablePakSigning = true,
-                    BEnablePakIndexEncryption = true,
-                    BEnablePakIniEncryption = true,
-                    BEnablePakUAssetEncryption = true,
-                    BEnablePakFullAssetEncryption = false,
-                    BDataCryptoRequired = true,
-                    PakEncryptionRequired = true,
-                    PakSigningRequired = true,
-                    SecondaryEncryptionKeys = new System.Collections.Generic.List<object>(),
-                    Type = "1",
-                    SigningKey = null,
-                    EncryptionKey = new EncryptionKey
-                    {
-                        Type = "1",
-                        Name = "null",
-                        Guid = "null",
-                        Key = null
-                    },
-                    Types = new Types
-                    {
-                        UnrealBuildToolEncryptionAndSigningCryptoSettingsUnrealBuildToolVersion4000CultureneutralpublicKeyTokennull = "1",
-                        UnrealBuildToolEncryptionAndSigningEncryptionKeyUnrealBuildToolVersion4000CultureneutralpublicKeyTokennull = "2",
-                        UnrealBuildToolEncryptionAndSigningSigningKeyPairUnrealBuildToolVersion4000CultureneutralpublicKeyTokennull = "3",
-                        UnrealBuildToolEncryptionAndSigningSigningKeyUnrealBuildToolVersion4000CultureneutralpublicKeyTokennull = "4"
-                    }
-                };
-                File.WriteAllText(_cryptoPath, JsonConvert.SerializeObject(cryptoModel, new JsonSerializerSettings {
-                    Formatting = Formatting.Indented,
-                    NullValueHandling = NullValueHandling.Include
-                }));
-            }
-            else
-            {
-                var cryptoData = JsonConvert.DeserializeObject<CryptoModel>(File.ReadAllText(_cryptoPath));
-                if(string.IsNullOrEmpty(cryptoData.EncryptionKey.Key) || cryptoData.EncryptionKey.Key.ToLower() == "null")
-                {
-                    MessageBox.Show("No encryption key set in Crypto.json", "Crypto error");
-                }
-            }
             InitializeComponent();
             this.FormBorderStyle = FormBorderStyle.FixedSingle;
             this.compressCheckBox.Checked = true;
             this.encryptIndexCheckBox.Checked = true;
-            this.uePakPathTextBox.ReadOnly = true;
             this.pakPathTextBox.ReadOnly = true;
             if (File.Exists(_settingsPath))
             {
                 try
                 {
                     _settings = JsonConvert.DeserializeObject<Settings>(File.ReadAllText(_settingsPath));
-                    _uePakPath = _settings.UnrealPakPath;
-                    if(!string.IsNullOrEmpty(_uePakPath) && File.Exists(_uePakPath))
-                    {
-                        _pakHandler = new PakHandler(_uePakPath);
-                    }
                     _pakPath = _settings.LastSelectedPak;
                     pakPathTextBox.Text = _pakPath;
-                    uePakPathTextBox.Text = _uePakPath;
                 }
                 catch
                 {
                     _settings = new Settings();
+                    _aesKey = null;
+                    File.WriteAllText(_settingsPath, JsonConvert.SerializeObject(_settings));
                 }
             }
             else
             {
                 _settings = new Settings();
+                _aesKey = null;
+                File.WriteAllText(_settingsPath, JsonConvert.SerializeObject(_settings));
+            }
+            if (!string.IsNullOrEmpty(_settings.AesKeyBase64))
+            {
+                _aesKey = Convert.FromBase64String(_settings.AesKeyBase64);
+            }
+            else
+            {
+                SetAesKeyWithDialog();
+            }
+            if (!string.IsNullOrEmpty(_pakPath))
+            {
+                try
+                {
+                    _pak = Pak.FromFile(_pakPath, _aesKey);
+                }
+                catch(Exception ex)
+                {
+                    MessageBox.Show(ex.Message);
+                }
             }
             AllFilesSelectedCheck();
         }
 
-        private void selectUePathButton_click(object sender, EventArgs e)
+        private void SetAesKeyWithDialog()
         {
-            openFileDialog1.FileName = "UnrealPak.exe";
-            DialogResult dialogResult = openFileDialog1.ShowDialog();
-            if (dialogResult == DialogResult.OK)
+            var aesKeyForm = new AesKeyInputForm();
+            aesKeyForm.ShowDialog();
+            if(aesKeyForm.DialogResult == DialogResult.OK && !string.IsNullOrEmpty(aesKeyForm.AesKeyBase64))
             {
-                _uePakPath = openFileDialog1.FileName;
-                uePakPathTextBox.Text = _uePakPath;
-                _settings.UnrealPakPath = _uePakPath;
+                _aesKey = Convert.FromBase64String(aesKeyForm.AesKeyBase64);
+                _settings.AesKeyBase64 = aesKeyForm.AesKeyBase64;
                 File.WriteAllText(_settingsPath, JsonConvert.SerializeObject(_settings));
-                try
-                {
-                    _pakHandler = new PakHandler(_uePakPath);
-                }
-                catch(Exception exception)
-                {
-                    MessageBox.Show(exception.Message);
-                }
-                
             }
-            openFileDialog1.FileName = "";
-            AllFilesSelectedCheck();
         }
 
         private void pakselectButton_Click(object sender, EventArgs e)
@@ -128,6 +89,13 @@ namespace LaPakguette.FormsGUI
                 pakPathTextBox.Text = _pakPath;
                 _settings.LastSelectedPak = _pakPath;
                 File.WriteAllText(_settingsPath, JsonConvert.SerializeObject(_settings));
+                try
+                {
+                    _pak = Pak.FromFile(_pakPath, _aesKey);
+                }catch(Exception ex)
+                {
+                    MessageBox.Show(ex.Message);
+                }
             }
             AllFilesSelectedCheck();
         }
@@ -135,13 +103,64 @@ namespace LaPakguette.FormsGUI
 
         private void unPakButton_Click(object sender, EventArgs e)
         {
-            Func<bool> action = () => { return _pakHandler.Unpack(_pakPath); };
+            Func<bool> action = () => { return _pak.ToFolder(); };
             DoAsyncAction(action, "Unpack");
         }
         private void repakButton_Click(object sender, EventArgs e)
         {
-            Func<bool> action = () => { return _pakHandler.Repack(_pakPath, compressCheckBox.Checked, encryptCheckBox.Checked, encryptIndexCheckBox.Checked); };
+            Func<bool> action = () => { return RepackToFile(); };
             DoAsyncAction(action, "Repack");
+        }
+
+        private bool RepackToFile()
+        {
+            try
+            {
+                var unpackDir = _pakPath.Replace(Regex.Match(_pakPath, @"\..*").Value, "");
+                if(Directory.Exists(unpackDir))
+                {
+                    var files = Directory.GetFiles(unpackDir).Where(x => Path.GetFileName(x) != Pak.MountpointFileName);
+                    var emptyFilenames = new List<string>();
+                    foreach(var file in files)
+                    {
+                        if(new FileInfo(file).Length == 0 )
+                        {
+                            emptyFilenames.Add(Path.GetRelativePath(unpackDir, file));
+                            continue;
+                        }
+                        var relFilePath = Path.GetRelativePath(unpackDir, file);
+                        _pak.AddOrReplaceFile(new PakFileEntry(relFilePath, File.ReadAllBytes(file)));
+                    }
+                    var existingFiles = _pak.GetAllFilenames();
+                    foreach (var existingFile in existingFiles)
+                    {
+                        if(files.FirstOrDefault(x => Path.GetRelativePath(unpackDir, x) == existingFile) == null)
+                        {
+                            //File deleted from unpack folder
+                            _pak.RemoveFile(existingFile);
+                        }
+                        if(emptyFilenames.Any() && emptyFilenames.Contains(existingFile))
+                        {
+                            //File deleted from unpack folder
+                            _pak.RemoveFile(existingFile);
+                        }
+                    }
+                }
+                var buffer = _pak.ToByteArray(compressCheckBox.Checked, encryptCheckBox.Checked, encryptIndexCheckBox.Checked, GetCompressionMethod());
+                File.WriteAllBytes(_pakPath, buffer);
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        private CompressionMethod GetCompressionMethod()
+        {
+            if(oodleCompression.Checked) return CompressionMethod.Oodle;
+            if(zlibCompression.Checked) return CompressionMethod.Zlib;
+            return CompressionMethod.None;
         }
 
         private async void DoAsyncAction(Func<bool> action, string message)
@@ -164,9 +183,14 @@ namespace LaPakguette.FormsGUI
 
         private void AllFilesSelectedCheck()
         {
-            var enabled = !string.IsNullOrEmpty(_uePakPath) && !string.IsNullOrEmpty(_pakPath) && File.Exists(_uePakPath) && File.Exists(_pakPath) && _pakHandler != null;
+            var enabled = !string.IsNullOrEmpty(_pakPath) && File.Exists(_pakPath) && _pak != null;
             this.unPakButton.Enabled = enabled;
             this.repakButton.Enabled = enabled;
+        }
+
+        private void changeAESKeyToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            SetAesKeyWithDialog();
         }
     }
 }

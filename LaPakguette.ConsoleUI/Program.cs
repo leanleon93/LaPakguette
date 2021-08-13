@@ -1,5 +1,4 @@
-﻿using LaPakguette.PakLib;
-using LaPakguette.PakLib.Models;
+﻿using LaPakguette.PakLib.Models;
 using System;
 using System.IO;
 
