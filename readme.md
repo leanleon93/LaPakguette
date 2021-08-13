@@ -1,4 +1,12 @@
-# LaPakguette - 🙃
-[![.NET](https://github.com/leanleon93/LaPakguette/actions/workflows/build_all.yml/badge.svg?branch=master)](https://github.com/leanleon93/LaPakguette/actions/workflows/build_all.yml)
-## Unpacking and repacking BnS UE4 .pak files.
-**Requires installed UnrealPak with oodle compression plugin!**
+# LaPakguette - 📦🥖
+Unpacking and repacking UE4 v9 .pak files.
+
+Supports oodle and zlib compression and aes encryption.
+
+My Oodle library is in packages folder.
+
+## BIG TODO:
+- Lazy loading for files to get massive speed improvement
+
+## Credit
+- Unreal Engine 4.27 for oodle library
