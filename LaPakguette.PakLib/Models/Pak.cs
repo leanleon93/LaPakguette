@@ -8,7 +8,7 @@ namespace LaPakguette.PakLib.Models
 {
     public class Pak
     {
-        private readonly string _pakPath;
+        public readonly string PakPath;
         private readonly byte[] AES_KEY;
         public const string MountpointFileName = "lapakguette_mp.txt";
 
@@ -31,7 +31,7 @@ namespace LaPakguette.PakLib.Models
 
         private Pak(string pakFilePath, byte[] AES_KEY)
         {
-            _pakPath = pakFilePath;
+            PakPath = pakFilePath;
             this.AES_KEY = AES_KEY;
             using(var fs = new FileStream(pakFilePath, FileMode.Open))
             {
@@ -190,7 +190,7 @@ namespace LaPakguette.PakLib.Models
             {
                 if(unpackDir == null)
                 {
-                    unpackDir = _pakPath.Replace(Regex.Match(_pakPath, @"\..*").Value, "");
+                    unpackDir = PakPath.Replace(Regex.Match(PakPath, @"\..*").Value, "");
                 }
                 Directory.CreateDirectory(unpackDir);
                 for(int i = 0; i < Index.RecordCount; i++)
@@ -208,6 +208,11 @@ namespace LaPakguette.PakLib.Models
             {
                 return false;
             }
+        }
+
+        public string GetName()
+        {
+            return Path.GetFileName(PakPath);
         }
 
         public string GetMountPoint()

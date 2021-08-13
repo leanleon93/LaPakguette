@@ -28,9 +28,18 @@ namespace LaPakguette.PakLib.Models
             {
                 using (var br2 = new BinaryReader(ms))
                 {
-                    MountPointSize = br2.ReadUInt32();
-                    MountPoint = Encoding.UTF8.GetString(br2.ReadBytes((int)MountPointSize - 1));
-                    br2.ReadByte();
+                    MountPointSize = br2.ReadInt32();
+                    if(MountPointSize < 0)
+                    {
+                        MountPoint = Encoding.Unicode.GetString(br.ReadBytes(Math.Abs(MountPointSize) * 2 - 2));
+                        br.ReadByte();
+                        br.ReadByte();
+                    }
+                    else
+                    {
+                        MountPoint = Encoding.UTF8.GetString(br2.ReadBytes((int)MountPointSize - 1));
+                        br2.ReadByte();
+                    }
                     var recordCount = br2.ReadUInt32();
                     Records = new PakIndexRecord[recordCount];
                     for (int i = 0; i < recordCount; i++)
@@ -40,7 +49,7 @@ namespace LaPakguette.PakLib.Models
                 }
             }
         }
-        public uint MountPointSize { get; set; }
+        public int MountPointSize { get; set; }
         public string MountPoint { get; set; }
         public int RecordCount => Records.Length;
         public PakIndexRecord[] Records { get; set; }
@@ -53,10 +62,22 @@ namespace LaPakguette.PakLib.Models
             {
                 using (BinaryWriter bw2 = new BinaryWriter(ms))
                 {
-                    var mountPointBytes = Encoding.UTF8.GetBytes(MountPoint);
-                    bw2.Write(mountPointBytes.Length + 1);
-                    bw2.Write(mountPointBytes);
-                    bw2.Write((byte)0);
+                    if (NameHelper.CheckUnicodeString(MountPoint))
+                    {
+                        var mountPointBytes = Encoding.Unicode.GetBytes(MountPoint);
+                        var length = (mountPointBytes.Length * -1 / 2) + 2;
+                        bw2.Write(length);
+                        bw2.Write(mountPointBytes);
+                        bw2.Write((byte)0);
+                        bw2.Write((byte)0);
+                    }
+                    else
+                    {
+                        var mountPointBytes = Encoding.UTF8.GetBytes(MountPoint);
+                        bw2.Write(mountPointBytes.Length + 1);
+                        bw2.Write(mountPointBytes);
+                        bw2.Write((byte)0);
+                    }
                     bw2.Write(Records.Length);
                     for (int i = 0; i < Records.Length; i++)
                     {

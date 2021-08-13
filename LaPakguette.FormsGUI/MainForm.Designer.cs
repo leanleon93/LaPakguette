@@ -47,6 +47,7 @@ namespace LaPakguette.FormsGUI
             this.menuStrip1 = new System.Windows.Forms.MenuStrip();
             this.fileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.changeAESKeyToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.showFilesButton = new System.Windows.Forms.Button();
             this.statusStrip1.SuspendLayout();
             this.menuStrip1.SuspendLayout();
             this.SuspendLayout();
@@ -81,7 +82,7 @@ namespace LaPakguette.FormsGUI
             // 
             this.unPakButton.Location = new System.Drawing.Point(31, 86);
             this.unPakButton.Name = "unPakButton";
-            this.unPakButton.Size = new System.Drawing.Size(312, 36);
+            this.unPakButton.Size = new System.Drawing.Size(230, 36);
             this.unPakButton.TabIndex = 6;
             this.unPakButton.Text = "Unpack";
             this.unPakButton.UseVisualStyleBackColor = true;
@@ -190,21 +191,32 @@ namespace LaPakguette.FormsGUI
             this.fileToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.changeAESKeyToolStripMenuItem});
             this.fileToolStripMenuItem.Name = "fileToolStripMenuItem";
-            this.fileToolStripMenuItem.Size = new System.Drawing.Size(37, 20);
+            this.fileToolStripMenuItem.Size = new System.Drawing.Size(61, 20);
             this.fileToolStripMenuItem.Text = "Options";
             // 
             // changeAESKeyToolStripMenuItem
             // 
             this.changeAESKeyToolStripMenuItem.Name = "changeAESKeyToolStripMenuItem";
-            this.changeAESKeyToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.changeAESKeyToolStripMenuItem.Size = new System.Drawing.Size(162, 22);
             this.changeAESKeyToolStripMenuItem.Text = "Change AES-Key";
             this.changeAESKeyToolStripMenuItem.Click += new System.EventHandler(this.changeAESKeyToolStripMenuItem_Click);
+            // 
+            // showFilesButton
+            // 
+            this.showFilesButton.Location = new System.Drawing.Point(268, 86);
+            this.showFilesButton.Name = "showFilesButton";
+            this.showFilesButton.Size = new System.Drawing.Size(75, 36);
+            this.showFilesButton.TabIndex = 14;
+            this.showFilesButton.Text = "Content";
+            this.showFilesButton.UseVisualStyleBackColor = true;
+            this.showFilesButton.Click += new System.EventHandler(this.showFilesButton_Click);
             // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(375, 329);
+            this.Controls.Add(this.showFilesButton);
             this.Controls.Add(this.statusStrip1);
             this.Controls.Add(this.menuStrip1);
             this.Controls.Add(this.zlibCompression);
@@ -250,6 +262,7 @@ namespace LaPakguette.FormsGUI
         private System.Windows.Forms.MenuStrip menuStrip1;
         private System.Windows.Forms.ToolStripMenuItem fileToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem changeAESKeyToolStripMenuItem;
+        private System.Windows.Forms.Button showFilesButton;
     }
 }
 

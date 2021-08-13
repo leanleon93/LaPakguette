@@ -6,6 +6,10 @@ namespace LaPakguette.FormsGUI
     public partial class AesKeyInputForm : Form
     {
         public string AesKeyBase64 { get; set; }
+        internal void SetInitText(string text)
+        {
+            textBox1.Text = text;
+        }
         public AesKeyInputForm()
         {
             InitializeComponent();
