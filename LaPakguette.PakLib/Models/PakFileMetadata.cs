@@ -1,11 +1,13 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 
 namespace LaPakguette.PakLib.Models
 {
     public class PakFileMetadata
     {
-        public PakFileMetadata(){}
+        public PakFileMetadata()
+        {
+        }
+
         public PakFileMetadata(BinaryReader br)
         {
             DataRecordOffset = br.ReadUInt64();
@@ -13,15 +15,13 @@ namespace LaPakguette.PakLib.Models
             UncompressedSize = br.ReadUInt64();
             CompressionMethod = br.ReadUInt32();
             DataRecordSha1Hash = br.ReadBytes(20);
-            if(CompressionMethod != 0x00)
+            if (CompressionMethod != 0x00)
             {
                 CompressionBlockCount = br.ReadUInt32();
                 CompressionBlocks = new CompressionBlock[CompressionBlockCount];
-                for(int i = 0; i < CompressionBlockCount; i++)
-                {
-                    CompressionBlocks[i] = new CompressionBlock(br);
-                }
+                for (var i = 0; i < CompressionBlockCount; i++) CompressionBlocks[i] = new CompressionBlock(br);
             }
+
             IsEncrypted = br.ReadByte() == 1;
             PaddedDataSize = IsEncrypted ? (ulong)AesHandler.CalculatePaddedSize((int)DataRecordSize) : DataRecordSize;
             UncompressedCompressionBlockSize = br.ReadUInt32();
@@ -58,6 +58,7 @@ namespace LaPakguette.PakLib.Models
             {
                 UncompressedCompressionBlockSize = 0;
             }
+
             bw.Write((byte)(IsEncrypted ? 1 : 0));
             bw.Write(UncompressedCompressionBlockSize);
         }

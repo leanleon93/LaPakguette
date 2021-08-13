@@ -6,7 +6,6 @@ namespace LaPakguette.PakLib.Models
 {
     public class PakIndexRecord
     {
-
         internal PakIndexRecord(string filename)
         {
             FileName = filename;
@@ -15,7 +14,7 @@ namespace LaPakguette.PakLib.Models
         public PakIndexRecord(BinaryReader br)
         {
             FileNameSize = br.ReadInt32();
-            if(FileNameSize < 0)
+            if (FileNameSize < 0)
             {
                 FileName = Encoding.Unicode.GetString(br.ReadBytes(Math.Abs(FileNameSize) * 2 - 2));
                 br.ReadByte();
@@ -23,11 +22,13 @@ namespace LaPakguette.PakLib.Models
             }
             else
             {
-                FileName = Encoding.UTF8.GetString(br.ReadBytes((int)FileNameSize - 1));
+                FileName = Encoding.UTF8.GetString(br.ReadBytes(FileNameSize - 1));
                 br.ReadByte();
             }
+
             Metadata = new PakFileMetadata(br);
         }
+
         public int FileNameSize { get; set; }
         public string FileName { get; set; }
         public PakFileMetadata Metadata { get; set; }
@@ -37,7 +38,7 @@ namespace LaPakguette.PakLib.Models
             if (NameHelper.CheckUnicodeString(FileName))
             {
                 var filenameBytes = Encoding.Unicode.GetBytes(FileName);
-                var length = ((filenameBytes.Length + 2) / 2 * -1);
+                var length = (filenameBytes.Length + 2) / 2 * -1;
                 bw.Write(length);
                 bw.Write(filenameBytes);
                 bw.Write((byte)0);
@@ -50,6 +51,7 @@ namespace LaPakguette.PakLib.Models
                 bw.Write(filenameBytes);
                 bw.Write((byte)0);
             }
+
             Metadata.WriteToStream(bw);
         }
     }

@@ -1,17 +1,17 @@
-using LaPakguette.PakLib.Models;
-using NUnit.Framework;
 using System;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
+using LaPakguette.PakLib.Models;
+using NUnit.Framework;
 
 namespace LaPakguette.PakLibTests
 {
     public class Tests
     {
-        private string _testFileBasePath;
         private readonly string BASE64_AES_KEY = @"0uX3+U5iXv4nJrU2DBA5zny5q7dgqU83uxWm3Ah0FlY=";
         private byte[] _aesKey;
+        private string _testFileBasePath;
 
 
         [SetUp]
@@ -165,7 +165,7 @@ namespace LaPakguette.PakLibTests
             var outFiles = Directory.GetFiles(outPath);
             var compareFiles = Directory.GetFiles(comparePath);
             if (outFiles.Length != compareFiles.Length) return false;
-            foreach(var file in compareFiles)
+            foreach (var file in compareFiles)
             {
                 var filename = Path.GetFileName(file);
                 var outFile = outFiles.ToList().Find(x => Path.GetFileName(x) == filename);
@@ -180,6 +180,7 @@ namespace LaPakguette.PakLibTests
                     return false;
                 }
             }
+
             return true;
         }
 
@@ -189,6 +190,6 @@ namespace LaPakguette.PakLibTests
         }
 
         [DllImport("msvcrt.dll", CallingConvention = CallingConvention.Cdecl)]
-        static extern int memcmp(byte[] b1, byte[] b2, long count);
+        private static extern int memcmp(byte[] b1, byte[] b2, long count);
     }
 }

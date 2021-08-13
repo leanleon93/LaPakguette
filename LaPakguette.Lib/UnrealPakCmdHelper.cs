@@ -1,13 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 
 namespace LaPakguette.Lib
 {
     internal class UnrealPakCmdHelper
     {
-        private string _unrealPakPath;
         internal readonly string repackFilename = "repack.txt";
+        private readonly string _unrealPakPath;
+
         internal UnrealPakCmdHelper(string unrealPakPath)
         {
             _unrealPakPath = unrealPakPath;
@@ -29,25 +30,13 @@ namespace LaPakguette.Lib
             var args = new List<string>();
             args.Add(WrapPath(pakOutPath));
             var repackFilepath = inputFolder + "\\" + repackFilename;
-            if (!File.Exists(repackFilepath))
-            {
-                return false;
-            }
+            if (!File.Exists(repackFilepath)) return false;
             args.Add("-Create=" + WrapPath(repackFilepath));
             var cryptoPath = Directory.GetCurrentDirectory() + "\\Crypto.json";
             args.Add("-cryptokeys=\"" + cryptoPath + "\"");
-            if (compress)
-            {
-                args.Add("-compress -compressionformat=\"oodle\"");
-            }
-            if (encrypt)
-            {
-                args.Add("-encrypt");
-            }
-            if (encryptindex)
-            {
-                args.Add("-encryptindex");
-            }
+            if (compress) args.Add("-compress -compressionformat=\"oodle\"");
+            if (encrypt) args.Add("-encrypt");
+            if (encryptindex) args.Add("-encryptindex");
             return RunCommand(args.ToArray());
         }
 
@@ -58,20 +47,19 @@ namespace LaPakguette.Lib
 
         private bool RunCommand(string[] args)
         {
-            System.Diagnostics.Process process = new System.Diagnostics.Process();
-            System.Diagnostics.ProcessStartInfo startInfo = new System.Diagnostics.ProcessStartInfo
+            var process = new Process();
+            var startInfo = new ProcessStartInfo
             {
                 CreateNoWindow = true,
                 WorkingDirectory = Path.GetDirectoryName(_unrealPakPath),
-                WindowStyle = System.Diagnostics.ProcessWindowStyle.Hidden,
+                WindowStyle = ProcessWindowStyle.Hidden,
                 FileName = _unrealPakPath,
-                Arguments = String.Join(" ", args)
+                Arguments = string.Join(" ", args)
             };
             process.StartInfo = startInfo;
             process.Start();
             process.WaitForExit();
             return process.ExitCode == 0;
         }
-
     }
 }

@@ -13,9 +13,9 @@ namespace LaPakguette.PakLib
 
             var output = new byte[padded.Length];
 
-            Rijndael aes = Rijndael.Create();
+            var aes = Rijndael.Create();
             aes.Mode = CipherMode.ECB;
-            ICryptoTransform decrypt = aes.CreateDecryptor(aesKey, new byte[16]);
+            var decrypt = aes.CreateDecryptor(aesKey, new byte[16]);
             decrypt.TransformBlock(padded, 0, padded.Length, output, 0);
 
             return RemovePadding(output, origSize);
@@ -23,14 +23,13 @@ namespace LaPakguette.PakLib
 
         internal static (byte[], byte[]) EncryptAES(byte[] buffer, byte[] aesKey)
         {
-
             var padded = AddPadding(buffer);
 
             var output = new byte[padded.Length];
 
-            Rijndael aes = Rijndael.Create();
+            var aes = Rijndael.Create();
             aes.Mode = CipherMode.ECB;
-            ICryptoTransform encrypt = aes.CreateEncryptor(aesKey, new byte[16]);
+            var encrypt = aes.CreateEncryptor(aesKey, new byte[16]);
             encrypt.TransformBlock(padded, 0, padded.Length, output, 0);
 
             return (output, SHA1Hash(padded));
@@ -53,27 +52,29 @@ namespace LaPakguette.PakLib
 
         internal static byte[] AddPadding(byte[] buffer, bool decrypt = false, byte[] padData = null)
         {
-            if(padData == null) padData = buffer;
+            if (padData == null) padData = buffer;
             var sizePadded = CalculatePaddedSize(buffer.Length, decrypt);
             if (sizePadded == buffer.Length) return buffer;
-            byte[] temp = new byte[sizePadded];
+            var temp = new byte[sizePadded];
             buffer.CopyTo(temp, 0);
             var remainingLength = temp.Length - buffer.Length;
             var padOffset = buffer.Length;
-            while(remainingLength != 0)
+            while (remainingLength != 0)
             {
                 var copyLength = remainingLength > padData.Length ? padData.Length : remainingLength;
                 Array.Copy(padData, 0, temp, padOffset, copyLength);
                 remainingLength -= copyLength;
                 padOffset += copyLength;
             }
+
             return temp;
         }
+
         internal static int CalculatePaddedSize(int size, bool decrypt = false, byte[] customAesKey = null)
         {
             var AES_BLOCK_SIZE = 16;
             if (!decrypt && size % AES_BLOCK_SIZE == 0) return size;
-            return size + (AES_BLOCK_SIZE - (size % AES_BLOCK_SIZE));
+            return size + (AES_BLOCK_SIZE - size % AES_BLOCK_SIZE);
         }
     }
 }

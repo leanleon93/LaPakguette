@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Text;
 
@@ -7,7 +6,9 @@ namespace LaPakguette.PakLib.Models
 {
     public class PakIndex
     {
-        public PakIndex() { }
+        public PakIndex()
+        {
+        }
 
         public PakIndex(string mountPoint)
         {
@@ -24,12 +25,13 @@ namespace LaPakguette.PakLib.Models
                 if (AES_KEY == null) throw new Exception("No aes key provided. File is encrypted.");
                 buffer = AesHandler.DecryptAES(buffer, AES_KEY);
             }
+
             using (var ms = new MemoryStream(buffer))
             {
                 using (var br2 = new BinaryReader(ms))
                 {
                     MountPointSize = br2.ReadInt32();
-                    if(MountPointSize < 0)
+                    if (MountPointSize < 0)
                     {
                         MountPoint = Encoding.Unicode.GetString(br.ReadBytes(Math.Abs(MountPointSize) * 2 - 2));
                         br.ReadByte();
@@ -37,18 +39,17 @@ namespace LaPakguette.PakLib.Models
                     }
                     else
                     {
-                        MountPoint = Encoding.UTF8.GetString(br2.ReadBytes((int)MountPointSize - 1));
+                        MountPoint = Encoding.UTF8.GetString(br2.ReadBytes(MountPointSize - 1));
                         br2.ReadByte();
                     }
+
                     var recordCount = br2.ReadUInt32();
                     Records = new PakIndexRecord[recordCount];
-                    for (int i = 0; i < recordCount; i++)
-                    {
-                        Records[i] = new PakIndexRecord(br2);
-                    }
+                    for (var i = 0; i < recordCount; i++) Records[i] = new PakIndexRecord(br2);
                 }
             }
         }
+
         public int MountPointSize { get; set; }
         public string MountPoint { get; set; }
         public int RecordCount => Records.Length;
@@ -58,14 +59,14 @@ namespace LaPakguette.PakLib.Models
         {
             var indexOffset = bw.BaseStream.Position;
             byte[] indexData;
-            using (MemoryStream ms = new MemoryStream())
+            using (var ms = new MemoryStream())
             {
-                using (BinaryWriter bw2 = new BinaryWriter(ms))
+                using (var bw2 = new BinaryWriter(ms))
                 {
                     if (NameHelper.CheckUnicodeString(MountPoint))
                     {
                         var mountPointBytes = Encoding.Unicode.GetBytes(MountPoint);
-                        var length = (mountPointBytes.Length * -1 / 2) + 2;
+                        var length = mountPointBytes.Length * -1 / 2 + 2;
                         bw2.Write(length);
                         bw2.Write(mountPointBytes);
                         bw2.Write((byte)0);
@@ -78,23 +79,18 @@ namespace LaPakguette.PakLib.Models
                         bw2.Write(mountPointBytes);
                         bw2.Write((byte)0);
                     }
+
                     bw2.Write(Records.Length);
-                    for (int i = 0; i < Records.Length; i++)
-                    {
-                        Records[i].WriteToStream(bw2);
-                    }
+                    for (var i = 0; i < Records.Length; i++) Records[i].WriteToStream(bw2);
                     indexData = ms.ToArray();
                 }
             }
+
             byte[] hash;
-            if(encryptIndex)
-            {
+            if (encryptIndex)
                 (indexData, hash) = AesHandler.EncryptAES(indexData, AES_KEY);
-            }
             else
-            {
                 hash = AesHandler.SHA1Hash(indexData);
-            }
             bw.Write(indexData);
             var indexSize = bw.BaseStream.Position - indexOffset;
             return (indexOffset, indexSize, hash);

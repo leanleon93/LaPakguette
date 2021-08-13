@@ -9,6 +9,7 @@ namespace LaPakguette.PakLib.Models
         internal PakFooter()
         {
         }
+
         public PakFooter(BinaryReader br)
         {
             var footerStart = br.BaseStream.Length - 205;
@@ -22,10 +23,17 @@ namespace LaPakguette.PakLib.Models
             CompressionMethods = ReadCompressionMethods(br);
         }
 
+        public string[] CompressionMethods { get; set; }
+        public uint Magic { get; set; }
+        public uint Version { get; set; }
+        public ulong IndexOffset { get; set; }
+        public ulong IndexSize { get; set; }
+        public byte[] Sha1Hash { get; set; }
+
         private string[] ReadCompressionMethods(BinaryReader br)
         {
             var methods = new List<string>();
-            while(true)
+            while (true)
             {
                 var method = ReadString(br);
                 if (!string.IsNullOrEmpty(method))
@@ -38,34 +46,24 @@ namespace LaPakguette.PakLib.Models
                     break;
                 }
             }
+
             return methods.ToArray();
         }
 
         private string ReadString(BinaryReader br)
         {
-            List<byte> list = new List<byte>();
-            while(true)
+            var list = new List<byte>();
+            while (true)
             {
                 var readChar = br.ReadByte();
                 if (readChar != 0x00)
-                {
                     list.Add(readChar);
-                }
                 else
-                {
                     break;
-                }
             }
-            
+
             return Encoding.UTF8.GetString(list.ToArray());
         }
-
-        public string[] CompressionMethods { get; set; }
-        public uint Magic { get; set; }
-        public uint Version { get; set; }
-        public ulong IndexOffset { get; set; }
-        public ulong IndexSize { get; set; }
-        public byte[] Sha1Hash { get; set; }
 
         internal void WriteToStream(BinaryWriter bw)
         {
@@ -76,11 +74,12 @@ namespace LaPakguette.PakLib.Models
             bw.Write(IndexSize);
             bw.Write(Sha1Hash);
             bw.Write((byte)0);
-            foreach(var method in CompressionMethods)
+            foreach (var method in CompressionMethods)
             {
                 bw.Write(Encoding.UTF8.GetBytes(method));
                 bw.Write(new byte[28]);
             }
+
             var pos2 = bw.BaseStream.Position;
             //0xCD
             var padd = 0xCD - (pos2 - pos);

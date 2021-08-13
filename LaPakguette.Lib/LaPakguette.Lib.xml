@@ -1,45 +1,47 @@
 <?xml version="1.0"?>
+
 <doc>
-    <assembly>
-        <name>LaPakguette.Lib</name>
-    </assembly>
-    <members>
-        <member name="T:LaPakguette.Lib.PakHandler">
-            <summary>
-            Handler for BNS UE4 .pak files wrapping UnrealPak
-            </summary>
-        </member>
-        <member name="M:LaPakguette.Lib.PakHandler.#ctor(System.String)">
-            <summary>
-            Handler for BNS UE4 .pak files wrapping UnrealPak
-            </summary>
-            <param name="unrealpakpath">Path to UnrealPak.exe</param>
-        </member>
-        <member name="M:LaPakguette.Lib.PakHandler.Unpack(System.String,System.String)">
-            <summary>
-            Unpack a .pak file
-            </summary>
-            <param name="pakPath">File to unpack</param>
-            <param name="unpackDir">Custom unpack directory<br />(Default next to .pak file)</param>
-        </member>
-        <member name="M:LaPakguette.Lib.PakHandler.Create(System.String,System.String,System.Boolean,System.Boolean,System.Boolean)">
-            <summary>
-            Create a .pak file from a repack folder<br />A repack.txt must exist in the folder.
-            </summary>
-            <param name="repackFolder">Repack folder with pak content and repack.txt file.</param>
-            <param name="pakOutPath">Custom output path of .pak file<br />(Default next to repack folder)</param>
-            <param name="compress">Enable oodle and zlib compression.</param>
-            <param name="encrypt">Enable content encryption.</param>
-            <param name="encryptIndex">Enable index encryption.</param>
-        </member>
-        <member name="M:LaPakguette.Lib.PakHandler.Repack(System.String,System.Boolean,System.Boolean,System.Boolean)">
-            <summary>
-            Repack a .pak file from the default unpack folder.
-            </summary>
-            <param name="pakPath">Path to .pak file.</param>
-            <param name="compress">Enable oodle and zlib compression.</param>
-            <param name="encrypt">Enable content encryption.</param>
-            <param name="encryptIndex">Enable index encryption.</param>
-        </member>
-    </members>
+	<assembly>
+		<name>LaPakguette.Lib</name>
+	</assembly>
+	<members>
+		<member name="T:LaPakguette.Lib.PakHandler">
+			<summary>
+				Handler for BNS UE4 .pak files wrapping UnrealPak
+			</summary>
+		</member>
+		<member name="M:LaPakguette.Lib.PakHandler.#ctor(System.String)">
+			<summary>
+				Handler for BNS UE4 .pak files wrapping UnrealPak
+			</summary>
+			<param name="unrealpakpath">Path to UnrealPak.exe</param>
+		</member>
+		<member name="M:LaPakguette.Lib.PakHandler.Unpack(System.String,System.String)">
+			<summary>
+				Unpack a .pak file
+			</summary>
+			<param name="pakPath">File to unpack</param>
+			<param name="unpackDir">Custom unpack directory<br />(Default next to .pak file)</param>
+		</member>
+		<member
+			name="M:LaPakguette.Lib.PakHandler.Create(System.String,System.String,System.Boolean,System.Boolean,System.Boolean)">
+			<summary>
+				Create a .pak file from a repack folder<br />A repack.txt must exist in the folder.
+			</summary>
+			<param name="repackFolder">Repack folder with pak content and repack.txt file.</param>
+			<param name="pakOutPath">Custom output path of .pak file<br />(Default next to repack folder)</param>
+			<param name="compress">Enable oodle and zlib compression.</param>
+			<param name="encrypt">Enable content encryption.</param>
+			<param name="encryptIndex">Enable index encryption.</param>
+		</member>
+		<member name="M:LaPakguette.Lib.PakHandler.Repack(System.String,System.Boolean,System.Boolean,System.Boolean)">
+			<summary>
+				Repack a .pak file from the default unpack folder.
+			</summary>
+			<param name="pakPath">Path to .pak file.</param>
+			<param name="compress">Enable oodle and zlib compression.</param>
+			<param name="encrypt">Enable content encryption.</param>
+			<param name="encryptIndex">Enable index encryption.</param>
+		</member>
+	</members>
 </doc>
