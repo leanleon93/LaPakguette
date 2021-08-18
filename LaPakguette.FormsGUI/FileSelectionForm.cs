@@ -159,8 +159,12 @@ namespace LaPakguette.FormsGUI
             {
                 var allFilenames = _pak.GetAllFilenames();
                 foreach (var file in allFilenames)
-                    if (file.StartsWith(_rightClickedPath))
+                {
+                    var fileDir = Path.GetDirectoryName(file);
+                    var rightClickedDir = Path.GetDirectoryName(_rightClickedPath + "/");
+                    if (file.StartsWith(_rightClickedPath + "/") && fileDir == rightClickedDir)
                         _pak.RemoveFile(file);
+                }
             }
             else
             {
