@@ -33,9 +33,10 @@ namespace LaPakguette.PakLib.Models
                     MountPointSize = br2.ReadInt32();
                     if (MountPointSize < 0)
                     {
-                        MountPoint = Encoding.Unicode.GetString(br.ReadBytes(Math.Abs(MountPointSize) * 2 - 2));
-                        br.ReadByte();
-                        br.ReadByte();
+                        var mountPointBytes = br2.ReadBytes(Math.Abs(MountPointSize) * 2 - 2);
+                        MountPoint = Encoding.Unicode.GetString(mountPointBytes);
+                        br2.ReadByte();
+                        br2.ReadByte();
                     }
                     else
                     {
@@ -66,7 +67,7 @@ namespace LaPakguette.PakLib.Models
                     if (NameHelper.CheckUnicodeString(MountPoint))
                     {
                         var mountPointBytes = Encoding.Unicode.GetBytes(MountPoint);
-                        var length = mountPointBytes.Length * -1 / 2 + 2;
+                        var length = (mountPointBytes.Length + 2) / 2 * -1;
                         bw2.Write(length);
                         bw2.Write(mountPointBytes);
                         bw2.Write((byte)0);
