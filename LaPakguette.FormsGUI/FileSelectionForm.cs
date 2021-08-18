@@ -30,13 +30,15 @@ namespace LaPakguette.FormsGUI
             if (pak != null)
             {
                 _pak = pak;
+                filesTreeView.BeginUpdate();
                 filesTreeView.Nodes.Clear();
                 var allFiles = _pak.GetAllFilenames();
                 filesTreeView.Nodes.Add(PopulateTreeNode(allFiles.ToArray(), "/"));
+                filesTreeView.EndUpdate();
             }
         }
 
-        private TreeNode PopulateTreeNode(string[] paths, string pathSeparator)
+        internal static TreeNode PopulateTreeNode(string[] paths, string pathSeparator)
         {
             if (paths == null)
                 return null;

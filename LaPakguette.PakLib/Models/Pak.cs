@@ -76,10 +76,16 @@ namespace LaPakguette.PakLib.Models
             return new Pak(pakFilePath, AES_KEY);
         }
 
-        public static List<string> GetAllFileNames(string pakFilePath, byte[] AES_KEY)
+        public static List<string> GetAllFilenames(string pakFilePath, byte[] AES_KEY)
         {
             var pak = new Pak(pakFilePath, AES_KEY, true);
             return pak.GetAllFilenames();
+        }
+
+        public static List<string> GetAllFilenamesWithMP(string pakFilePath, byte[] AES_KEY)
+        {
+            var pak = new Pak(pakFilePath, AES_KEY, true);
+            return pak.GetAllFilenamesWithMP();
         }
 
         public static Pak FromBuffer(byte[] pakFileBuffer, byte[] AES_KEY)
@@ -153,8 +159,9 @@ namespace LaPakguette.PakLib.Models
                 ReplaceFile(newEntry.Name, newEntry.Data);
         }
 
-        public PakFileEntry GetFile(string filename)
+        public PakFileEntry GetFile(string filename, bool withMp = false)
         {
+            if(withMp) filename = filename.Replace(Index.MountPoint, "");
             var indexOf = GetFileIndex(filename);
             if (indexOf == -1) return null;
             var file = DataRecords[indexOf].Data;
@@ -247,6 +254,18 @@ namespace LaPakguette.PakLib.Models
         public string GetMountPoint()
         {
             return Index.MountPoint;
+        }
+
+        public List<string> GetAllFilenamesWithMP()
+        {
+            var allFilenames = this.GetAllFilenames();
+            for (int i = 0; i < allFilenames.Count; i++)
+            {
+                string file = allFilenames[i];
+                file = Index.MountPoint + file;
+                allFilenames[i] = file;
+            }
+            return allFilenames;
         }
 
         public List<string> GetAllFilenames()

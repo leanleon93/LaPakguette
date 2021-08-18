@@ -284,5 +284,17 @@ namespace LaPakguette.FormsGUI
                     return true;
             return false;
         }
+
+        private void openFolderToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if(folderBrowserDialog1.ShowDialog() == DialogResult.OK)
+            {
+                var folder = folderBrowserDialog1.SelectedPath;
+                var group = PakGroup.FromFolder(folder, _aesKey);
+                var folderForm = new FolderViewForm();
+                folderForm.SetPakGroup(group);
+                folderForm.ShowDialog();
+            }
+        }
     }
 }
