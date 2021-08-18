@@ -22,7 +22,6 @@ namespace LaPakguette.FormsGUI
         {
             if (pakGroup != null)
             {
-                contextMenuStrip1.Items.Clear();
                 _pakGroup = pakGroup;
                 treeView1.BeginUpdate();
                 treeView1.Nodes.Clear();
@@ -102,7 +101,8 @@ namespace LaPakguette.FormsGUI
             {
                 treeView1.SelectedNode = e.Node;
                 _rightClickedPath = e.Node.FullPath.TrimStart('/');
-                contextMenuStrip1.Show(Cursor.Position);
+                if(Path.HasExtension(_rightClickedPath))
+                    contextMenuStrip1.Show(Cursor.Position);
             }
         }
 
