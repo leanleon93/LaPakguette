@@ -19,31 +19,42 @@ namespace LaPakguette.PakLib.Models
 
         public PakDataRecord(BinaryReader br, string[] compressionMethods, byte[] aesKey)
         {
+            _aesKey = aesKey;
+            _compressionMethods = compressionMethods;
             var pos = br.BaseStream.Position;
             Metadata = new PakFileMetadata(br);
             var metadataSize = br.BaseStream.Position - pos;
             MetadataSize = metadataSize;
-            Data = br.ReadBytes((int)Metadata.PaddedDataSize);
+            _data = br.ReadBytes((int)Metadata.PaddedDataSize);
             br.BaseStream.Position = pos;
-            //File.WriteAllBytes(@"C:\Users\leanw\Documents\pak.data", Data);
-            DecryptData(aesKey);
-            //File.WriteAllBytes(@"C:\Users\leanw\Documents\pak.data.dec", Data);
-            DecompressData((int)metadataSize, compressionMethods);
-            //File.WriteAllBytes(@"C:\Users\leanw\Documents\pak.data.deco", Data);
         }
-
+        private readonly string[] _compressionMethods;
+        private readonly byte[] _aesKey;
         public PakFileMetadata Metadata { get; set; }
         public long MetadataSize { get; set; }
-        public byte[] Data { get; set; }
+        private byte[] _data;
+        private bool _accessed;
+        public byte[] Data
+        {
+            get 
+            {
+                if(_accessed) return _data;
+                DecryptData(_aesKey);
+                DecompressData((int)MetadataSize, _compressionMethods);
+                _accessed = true;
+                return _data;
+            }
+            set { _data = value; _accessed = true; }
+        }
 
         private void DecryptData(byte[] aesKey)
         {
-            if (Metadata.IsEncrypted)
+            if (Metadata.IsEncrypted && !_accessed)
             {
                 if (aesKey == null) throw new Exception("No aes key provided. File is encrypted.");
-                var decrypted = AesHandler.DecryptAES(Data, aesKey);
-                Data = new byte[Metadata.DataRecordSize];
-                Array.Copy(decrypted, 0, Data, 0, Data.Length);
+                var decrypted = AesHandler.DecryptAES(_data, aesKey);
+                _data = new byte[Metadata.DataRecordSize];
+                Array.Copy(decrypted, 0, _data, 0, _data.Length);
             }
         }
 
@@ -52,7 +63,7 @@ namespace LaPakguette.PakLib.Models
             if (encrypt)
             {
                 if (aesKey == null) throw new Exception("No aes key provided. File can not be encrypted.");
-                (Data, _) = AesHandler.EncryptAES(Data, aesKey);
+                (_data, _) = AesHandler.EncryptAES(_data, aesKey);
             }
         }
 
@@ -63,18 +74,18 @@ namespace LaPakguette.PakLib.Models
                 if (compressionMethods == null || compressionMethods.Length == 0)
                     throw new Exception("No compression methods found.");
                 var compressionMethod = compressionMethods[Metadata.CompressionMethod - 1];
-                if (Data.Length > MaxChunkSize)
+                if (_data.Length > MaxChunkSize)
                 {
-                    var chunkCount = (Data.Length + MaxChunkSize - 1) / MaxChunkSize;
+                    var chunkCount = (_data.Length + MaxChunkSize - 1) / MaxChunkSize;
                     var chunks = new byte[chunkCount][];
                     Metadata.CompressionBlockCount = (uint)chunkCount;
                     Metadata.CompressionBlocks = new CompressionBlock[chunkCount];
                     ulong offset = 57 + Metadata.CompressionBlockCount * 16;
                     for (var i = 0; i < chunkCount; i++)
                     {
-                        chunks[i] = new byte[Math.Min(MaxChunkSize, Data.Length - i * MaxChunkSize)];
+                        chunks[i] = new byte[Math.Min(MaxChunkSize, _data.Length - i * MaxChunkSize)];
 
-                        Array.Copy(Data, i * MaxChunkSize, chunks[i], 0, chunks[i].Length);
+                        Array.Copy(_data, i * MaxChunkSize, chunks[i], 0, chunks[i].Length);
                         var compressedData = new byte[0];
                         if (compressionMethod == "Oodle" || compressionMethod == "oodle")
                             compressedData = Oodle.Compress(chunks[i], OodleFormat.Kraken,
@@ -94,7 +105,7 @@ namespace LaPakguette.PakLib.Models
                         offset += (ulong)chunks[i].Length;
                     }
 
-                    Data = Combine(chunks);
+                    _data = Combine(chunks);
 
                     Metadata.UncompressedCompressionBlockSize = MaxChunkSize;
                 }
@@ -103,16 +114,16 @@ namespace LaPakguette.PakLib.Models
                     Metadata.CompressionBlockCount = 1;
 
                     if (compressionMethod == "Oodle" || compressionMethod == "oodle")
-                        Data = Oodle.Compress(Data, OodleFormat.Kraken, OodleCompressionLevel.Normal);
+                        _data = Oodle.Compress(_data, OodleFormat.Kraken, OodleCompressionLevel.Normal);
                     if (compressionMethod == "Zlib" || compressionMethod == "zlib")
-                        Data = ZlibStream.CompressBuffer(Data);
+                        _data = ZlibStream.CompressBuffer(_data);
                 }
             }
         }
 
         private void DecompressData(int metadataBufferLength, string[] compressionMethods)
         {
-            if (Metadata.CompressionMethod != 0x00)
+            if (Metadata.CompressionMethod != 0x00 && !_accessed)
             {
                 if (compressionMethods == null || compressionMethods.Length == 0)
                     throw new Exception("No compression methods found.");
@@ -120,11 +131,11 @@ namespace LaPakguette.PakLib.Models
 
                 if (Metadata.CompressionBlockCount > 1)
                 {
-                    var fullData = new byte[metadataBufferLength + Data.Length];
+                    var fullData = new byte[metadataBufferLength + _data.Length];
                     var offset = 0;
                     Buffer.BlockCopy(new byte[metadataBufferLength], 0, fullData, offset, metadataBufferLength);
                     offset += metadataBufferLength;
-                    Buffer.BlockCopy(Data, 0, fullData, offset, Data.Length);
+                    Buffer.BlockCopy(_data, 0, fullData, offset, _data.Length);
                     var chunks = new List<byte[]>();
                     using (var ms = new MemoryStream(fullData))
                     using (var br2 = new BinaryReader(ms))
@@ -151,14 +162,14 @@ namespace LaPakguette.PakLib.Models
                         }
                     }
 
-                    Data = Combine(chunks.ToArray());
+                    _data = Combine(chunks.ToArray());
                 }
                 else
                 {
                     if (compressionMethod == "Oodle" || compressionMethod == "oodle")
-                        Data = Oodle.Decompress(Data, (int)Metadata.UncompressedSize);
+                        _data = Oodle.Decompress(_data, (int)Metadata.UncompressedSize);
                     if (compressionMethod == "Zlib" || compressionMethod == "zlib")
-                        Data = ZlibStream.UncompressBuffer(Data);
+                        _data = ZlibStream.UncompressBuffer(_data);
                 }
             }
         }
@@ -167,20 +178,30 @@ namespace LaPakguette.PakLib.Models
             string[] compressionMethods, byte[] aesKey)
         {
             var dataOffset = (ulong)bw.BaseStream.Position;
+            compress = compress && Metadata.UncompressedSize > 200000;
+            if(!_accessed && encrypt == Metadata.IsEncrypted && (compress && Metadata.CompressionMethod > 0 || !compress && Metadata.CompressionMethod == 0)) //if we repack with same settings just rewrite the packed buffer
+            {
+                Metadata.WriteToStream(bw);
+                bw.Write(_data);
+                Metadata.DataRecordOffset = dataOffset;
+                return Metadata;
+            }
+            _ = Data; //force load
             Metadata.DataRecordOffset = 0;
-            Metadata.UncompressedSize = (ulong)Data.Length;
+            Metadata.UncompressedSize = (ulong)_data.Length;
             compress = compress && Metadata.UncompressedSize > 200000;
             Metadata.CompressionMethod = compress ? 1 : (uint)0;
             Metadata.IsEncrypted = encrypt;
             CompressData(compress, compressionMethods, encrypt);
-            Metadata.DataRecordSize = (ulong)Data.Length;
+            Metadata.DataRecordSize = (ulong)_data.Length;
             EncryptData(encrypt, aesKey);
-            Metadata.PaddedDataSize = (ulong)Data.Length;
+            _accessed = false;
+            Metadata.PaddedDataSize = (ulong)_data.Length;
             var hashWorthyData = new byte[Metadata.DataRecordSize];
-            Array.Copy(Data, hashWorthyData, hashWorthyData.Length);
+            Array.Copy(_data, hashWorthyData, hashWorthyData.Length);
             Metadata.DataRecordSha1Hash = AesHandler.SHA1Hash(hashWorthyData);
             Metadata.WriteToStream(bw);
-            bw.Write(Data);
+            bw.Write(_data);
             Metadata.DataRecordOffset = dataOffset;
             return Metadata;
         }

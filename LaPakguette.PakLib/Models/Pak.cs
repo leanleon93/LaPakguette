@@ -29,22 +29,22 @@ namespace LaPakguette.PakLib.Models
             }
         }
 
-        private Pak(string pakFilePath, byte[] AES_KEY)
+        private Pak(string pakFilePath, byte[] AES_KEY, bool indexOnly = false)
         {
             PakPath = pakFilePath;
             this.AES_KEY = AES_KEY;
             using (var fs = new FileStream(pakFilePath, FileMode.Open))
             {
-                InitPakFromStream(fs);
+                InitPakFromStream(fs, indexOnly);
             }
         }
 
-        private Pak(byte[] pakFileBuffer, byte[] AES_KEY)
+        private Pak(byte[] pakFileBuffer, byte[] AES_KEY, bool indexOnly = false)
         {
             this.AES_KEY = AES_KEY;
             using (var ms = new MemoryStream(pakFileBuffer))
             {
-                InitPakFromStream(ms);
+                InitPakFromStream(ms, indexOnly);
             }
         }
 
@@ -53,7 +53,7 @@ namespace LaPakguette.PakLib.Models
         private PakIndex Index { get; set; }
         private PakFooter Footer { get; set; }
 
-        private void InitPakFromStream(Stream s)
+        private void InitPakFromStream(Stream s, bool indexOnly)
         {
             using (var br = new BinaryReader(s))
             {
@@ -61,6 +61,7 @@ namespace LaPakguette.PakLib.Models
                 IndexEncrypted = br.ReadByte() == 1;
                 Footer = new PakFooter(br);
                 Index = new PakIndex(br, (long)Footer.IndexOffset, (int)Footer.IndexSize, IndexEncrypted, AES_KEY);
+                if(indexOnly) return;
                 DataRecords = new PakDataRecord[Index.RecordCount];
                 for (var i = 0; i < Index.RecordCount; i++)
                 {
@@ -75,17 +76,39 @@ namespace LaPakguette.PakLib.Models
             return new Pak(pakFilePath, AES_KEY);
         }
 
+        public static List<string> GetAllFileNames(string pakFilePath, byte[] AES_KEY)
+        {
+            var pak = new Pak(pakFilePath, AES_KEY, true);
+            return pak.GetAllFilenames();
+        }
+
         public static Pak FromBuffer(byte[] pakFileBuffer, byte[] AES_KEY)
         {
-            return new Pak(pakFileBuffer, AES_KEY);
+            try
+            {
+                return new Pak(pakFileBuffer, AES_KEY);
+            }
+            catch
+            {
+                return null;
+            }
+            
         }
 
         public static Pak FromFolder(string folderPath, byte[] AES_KEY = null)
         {
-            var mpPath = Path.Combine(folderPath, MountpointFileName);
-            if (!File.Exists(mpPath)) throw new FileNotFoundException("No mountpoint file present.");
-            var mp = File.ReadAllText(mpPath);
-            return new Pak(folderPath, mp, AES_KEY);
+            try
+            {
+                var mpPath = Path.Combine(folderPath, MountpointFileName);
+                if (!File.Exists(mpPath)) throw new FileNotFoundException("No mountpoint file present.");
+                var mp = File.ReadAllText(mpPath);
+                return new Pak(folderPath, mp, AES_KEY);
+            }
+            catch
+            {
+                return null;
+            }
+            
         }
 
         public byte[] ToByteArray(bool compress, bool encrypt, bool encryptIndex, CompressionMethod compressionMethod,

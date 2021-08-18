@@ -141,8 +141,16 @@ namespace LaPakguette.Lib
                 using (var br = new BinaryReader(new MemoryStream(decrypted)))
                 {
                     var mountPointLength = br.ReadInt32();
-                    mountPoint =
-                        Encoding.UTF8.GetString(br.ReadBytes(mountPointLength - 1)); // -1 to remove terminating 0 byte
+                    if(mountPointLength < 0)
+                    {
+                        mountPoint =
+                            Encoding.Unicode.GetString(br.ReadBytes(Math.Abs(mountPointLength) * 2 - 2)); // -2 to remove terminating 0 bytes
+                    }
+                    else
+                    {
+                        mountPoint =
+                            Encoding.UTF8.GetString(br.ReadBytes(mountPointLength - 1)); // -1 to remove terminating 0 byte
+                    }
                 }
 
                 return mountPoint;

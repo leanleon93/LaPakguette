@@ -340,3 +340,5 @@ ASALocalRun/
 healthchecksdb
 
 !packages/OodleCompressionLib.*
+/LaPakguette.PakLibTests/TestFiles/result/allFiles.txt
+/LaPakguette.PakLibTests/TestFiles/result/consoleResults

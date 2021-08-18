@@ -1,4 +1,6 @@
-﻿namespace LaPakguette.PakLib.Models
+﻿using System.IO;
+
+namespace LaPakguette.PakLib.Models
 {
     public class PakFileEntry
     {
@@ -10,5 +12,10 @@
 
         public string Name { get; }
         public byte[] Data { get; }
+        public void SaveToFile(string outFolder)
+        {
+            var outPath = Path.Combine(outFolder, Name);
+            File.WriteAllBytes(outPath, Data);
+        }
     }
 }

@@ -4,17 +4,17 @@ using System.IO;
 
 namespace LaPakguette.Lib
 {
-    internal class UnrealPakCmdHelper
+    public class UnrealPakCmdHelper
     {
         internal readonly string repackFilename = "repack.txt";
         private readonly string _unrealPakPath;
 
-        internal UnrealPakCmdHelper(string unrealPakPath)
+        public UnrealPakCmdHelper(string unrealPakPath)
         {
             _unrealPakPath = unrealPakPath;
         }
 
-        internal bool Unpack(string pakPath, string outDir)
+        public bool Unpack(string pakPath, string outDir)
         {
             var args = new string[4];
             args[0] = WrapPath(pakPath);
@@ -25,7 +25,7 @@ namespace LaPakguette.Lib
             return RunCommand(args);
         }
 
-        internal bool Repack(string inputFolder, string pakOutPath, bool compress, bool encrypt, bool encryptindex)
+        public bool Repack(string inputFolder, string pakOutPath, bool compress, bool encrypt, bool encryptindex)
         {
             var args = new List<string>();
             args.Add(WrapPath(pakOutPath));
