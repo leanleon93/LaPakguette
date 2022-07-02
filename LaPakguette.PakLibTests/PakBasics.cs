@@ -1,9 +1,9 @@
+using LaPakguette.PakLib.Models;
+using NUnit.Framework;
 using System;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
-using LaPakguette.PakLib.Models;
-using NUnit.Framework;
 
 namespace LaPakguette.PakLibTests
 {

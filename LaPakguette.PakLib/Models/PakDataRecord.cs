@@ -1,9 +1,9 @@
-﻿using System;
+﻿using Ionic.Zlib;
+using OodleCompressionLib;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Ionic.Zlib;
-using OodleCompressionLib;
 
 namespace LaPakguette.PakLib.Models
 {
@@ -36,9 +36,9 @@ namespace LaPakguette.PakLib.Models
         private bool _accessed;
         public byte[] Data
         {
-            get 
+            get
             {
-                if(_accessed) return _data;
+                if (_accessed) return _data;
                 DecryptData(_aesKey);
                 DecompressData((int)MetadataSize, _compressionMethods);
                 _accessed = true;
@@ -179,7 +179,7 @@ namespace LaPakguette.PakLib.Models
         {
             var dataOffset = (ulong)bw.BaseStream.Position;
             compress = compress && Metadata.UncompressedSize > 200000;
-            if(!_accessed && encrypt == Metadata.IsEncrypted && (compress && Metadata.CompressionMethod > 0 || !compress && Metadata.CompressionMethod == 0)) //if we repack with same settings just rewrite the packed buffer
+            if (!_accessed && encrypt == Metadata.IsEncrypted && (compress && Metadata.CompressionMethod > 0 || !compress && Metadata.CompressionMethod == 0)) //if we repack with same settings just rewrite the packed buffer
             {
                 Metadata.WriteToStream(bw);
                 bw.Write(_data);

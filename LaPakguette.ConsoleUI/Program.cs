@@ -1,7 +1,7 @@
-﻿using System;
-using System.IO;
+﻿using LaPakguette.Lib;
 using LaPakguette.PakLib.Models;
-using LaPakguette.Lib;
+using System;
+using System.IO;
 
 namespace LaPakguette.ConsoleUI
 {
@@ -48,7 +48,7 @@ namespace LaPakguette.ConsoleUI
             var allFiles = group.GetAllFilePaths();
             File.WriteAllLines(Path.Combine(outPath, "allFiles.txt"), allFiles);
             var allFilesByPak = group.GetAllFilePathsByPak();
-            foreach(var pak in allFilesByPak)
+            foreach (var pak in allFilesByPak)
             {
                 File.WriteAllLines(Path.Combine(outPath, $"{(Path.GetFileNameWithoutExtension(pak.Key))}.txt"), pak.Value);
             }

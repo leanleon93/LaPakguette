@@ -1,10 +1,10 @@
-﻿using System;
+﻿using LaPakguette.Lib.Models;
+using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using LaPakguette.Lib.Models;
-using Newtonsoft.Json;
 
 namespace LaPakguette.Lib
 {
@@ -141,7 +141,7 @@ namespace LaPakguette.Lib
                 using (var br = new BinaryReader(new MemoryStream(decrypted)))
                 {
                     var mountPointLength = br.ReadInt32();
-                    if(mountPointLength < 0)
+                    if (mountPointLength < 0)
                     {
                         mountPoint =
                             Encoding.Unicode.GetString(br.ReadBytes(Math.Abs(mountPointLength) * 2 - 2)); // -2 to remove terminating 0 bytes
