@@ -61,7 +61,7 @@ namespace LaPakguette.PakLib.Models
                 IndexEncrypted = br.ReadByte() == 1;
                 Footer = new PakFooter(br);
                 Index = new PakIndex(br, (long)Footer.IndexOffset, (int)Footer.IndexSize, IndexEncrypted, AES_KEY);
-                if(indexOnly) return;
+                if (indexOnly) return;
                 DataRecords = new PakDataRecord[Index.RecordCount];
                 for (var i = 0; i < Index.RecordCount; i++)
                 {
@@ -98,7 +98,7 @@ namespace LaPakguette.PakLib.Models
             {
                 return null;
             }
-            
+
         }
 
         public static Pak FromFolder(string folderPath, byte[] AES_KEY = null)
@@ -114,7 +114,7 @@ namespace LaPakguette.PakLib.Models
             {
                 return null;
             }
-            
+
         }
 
         public byte[] ToByteArray(bool compress, bool encrypt, bool encryptIndex, CompressionMethod compressionMethod,
@@ -161,7 +161,7 @@ namespace LaPakguette.PakLib.Models
 
         public PakFileEntry GetFile(string filename, bool withMp = false)
         {
-            if(withMp) filename = filename.Replace(Index.MountPoint, "");
+            if (withMp) filename = filename.Replace(Index.MountPoint, "");
             var indexOf = GetFileIndex(filename);
             if (indexOf == -1) return null;
             var file = DataRecords[indexOf].Data;
@@ -254,6 +254,11 @@ namespace LaPakguette.PakLib.Models
         public string GetMountPoint()
         {
             return Index.MountPoint;
+        }
+
+        public void SetMountPoint(string mountpoint)
+        {
+            Index.MountPoint = mountpoint;
         }
 
         public List<string> GetAllFilenamesWithMP()

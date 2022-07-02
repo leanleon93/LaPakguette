@@ -161,6 +161,12 @@ namespace LaPakguette.FormsGUI
                             _pak.RemoveFile(existingFile);
                     }
                 }
+                var mpFile = Directory.GetFiles(unpackDir, "*", SearchOption.AllDirectories)
+                        .FirstOrDefault(x => Path.GetFileName(x) == Pak.MountpointFileName);
+                if (mpFile != null)
+                {
+                    _pak.SetMountPoint(File.ReadAllText(mpFile));
+                }
 
                 var buffer = _pak.ToByteArray(compressCheckBox.Checked, encryptCheckBox.Checked,
                     encryptIndexCheckBox.Checked, GetCompressionMethod());
@@ -256,7 +262,7 @@ namespace LaPakguette.FormsGUI
 
         private void showFilesButton_Click(object sender, EventArgs e)
         {
-            if(_pak == null)
+            if (_pak == null)
             {
                 MessageBox.Show("Please select a .pak file first");
                 return;
@@ -287,7 +293,7 @@ namespace LaPakguette.FormsGUI
 
         private void openFolderToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            if(folderBrowserDialog1.ShowDialog() == DialogResult.OK)
+            if (folderBrowserDialog1.ShowDialog() == DialogResult.OK)
             {
                 var folder = folderBrowserDialog1.SelectedPath;
                 var group = PakGroup.FromFolder(folder, _aesKey);

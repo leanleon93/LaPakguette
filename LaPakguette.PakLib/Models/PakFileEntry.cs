@@ -15,6 +15,7 @@ namespace LaPakguette.PakLib.Models
         public void SaveToFile(string outFolder)
         {
             var outPath = Path.Combine(outFolder, Name);
+            Directory.CreateDirectory(Path.GetDirectoryName(outPath));
             File.WriteAllBytes(outPath, Data);
         }
     }

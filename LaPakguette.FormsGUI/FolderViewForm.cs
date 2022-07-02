@@ -101,7 +101,7 @@ namespace LaPakguette.FormsGUI
             {
                 treeView1.SelectedNode = e.Node;
                 _rightClickedPath = e.Node.FullPath.TrimStart('/');
-                if(Path.HasExtension(_rightClickedPath))
+                
                     contextMenuStrip1.Show(Cursor.Position);
             }
         }
@@ -126,10 +126,12 @@ namespace LaPakguette.FormsGUI
             else
             {
                 var allFilenames = _pakGroup.GetAllFilePathsWithMP();
-                var filenames = allFilenames.Where(x => x.StartsWith(_rightClickedPath)).ToList();
+                var filenames = allFilenames.Where(x => x.StartsWith(_rightClickedPath + "/")).ToList();
                 var unpackDir = _pakGroup.Folder;
                 foreach(var filename in filenames)
                 {
+                    var outFilePathTest = Path.Combine(unpackDir, filename.Replace("../", ""));
+                    if(File.Exists(outFilePathTest)) continue;
                     var file = _pakGroup.GetFileByPathWithMP(filename);
                     var outfilepath = filename.Replace("../", "").Replace(file.Name, "");
                     var filePath = Path.Combine(unpackDir, outfilepath, file.Name);

@@ -18,6 +18,8 @@ namespace LaPakguette.ConsoleUI
         private static void Main(string[] args)
         {
             _aesKey = Convert.FromBase64String(BASE64_AES_KEY);
+            var pakGroup = PakGroup.FromFolder(@"F:\Games\BNS EU\BnS_UE4\BNSR\Content\Paks", _aesKey);
+            var file = pakGroup.GetFileByName("Skill_Trait_Icon_4.uasset");
             //RepackUnencrypted();
             DumpFullFileList();
             //var pak = Pak.FromFile(_livepak3, _aesKey);

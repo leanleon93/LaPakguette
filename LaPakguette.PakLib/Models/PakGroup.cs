@@ -14,7 +14,7 @@ namespace LaPakguette.PakLib.Models
             Folder = folderPath;
             _aesKey = AES_KEY;
             _paks = new List<string>();
-            foreach(var file in Directory.EnumerateFiles(folderPath).Where(x => x.EndsWith(".pak")))
+            foreach (var file in Directory.EnumerateFiles(folderPath).Where(x => x.EndsWith(".pak")))
             {
                 _paks.Add(file);
             }
@@ -28,9 +28,9 @@ namespace LaPakguette.PakLib.Models
         private List<string> _allFilePathsCache;
         public List<string> GetAllFilePaths()
         {
-            if(_allFilePathsCache != null) return _allFilePathsCache;
+            if (_allFilePathsCache != null) return _allFilePathsCache;
             var result = new List<string>();
-            foreach(var pakName in _paks)
+            foreach (var pakName in _paks)
             {
                 var paths = Pak.GetAllFilenames(pakName, _aesKey);
                 result.AddRange(paths);
@@ -42,9 +42,9 @@ namespace LaPakguette.PakLib.Models
         private List<string> _allFilePathsWithMPCache;
         public List<string> GetAllFilePathsWithMP()
         {
-            if(_allFilePathsWithMPCache != null) return _allFilePathsWithMPCache;
+            if (_allFilePathsWithMPCache != null) return _allFilePathsWithMPCache;
             var result = new List<string>();
-            foreach(var pakName in _paks)
+            foreach (var pakName in _paks)
             {
                 var paths = Pak.GetAllFilenamesWithMP(pakName, _aesKey);
                 result.AddRange(paths);
@@ -57,9 +57,9 @@ namespace LaPakguette.PakLib.Models
 
         public Dictionary<string, List<string>> GetAllFilePathsByPak()
         {
-            if(_allFilePathsByPakCache != null) return _allFilePathsByPakCache;
+            if (_allFilePathsByPakCache != null) return _allFilePathsByPakCache;
             var result = new Dictionary<string, List<string>>();
-            foreach(var pakName in _paks)
+            foreach (var pakName in _paks)
             {
                 var paths = Pak.GetAllFilenames(pakName, _aesKey);
                 result.Add(pakName, paths);
@@ -72,9 +72,9 @@ namespace LaPakguette.PakLib.Models
 
         public Dictionary<string, List<string>> GetAllFilePathsByPakWithMP()
         {
-            if(_allFilePathsByPakWithMPCache != null) return _allFilePathsByPakWithMPCache;
+            if (_allFilePathsByPakWithMPCache != null) return _allFilePathsByPakWithMPCache;
             var result = new Dictionary<string, List<string>>();
-            foreach(var pakName in _paks)
+            foreach (var pakName in _paks)
             {
                 var paths = Pak.GetAllFilenamesWithMP(pakName, _aesKey);
                 result.Add(pakName, paths);
@@ -97,35 +97,54 @@ namespace LaPakguette.PakLib.Models
             return null;
         }
 
+        private readonly Dictionary<string, Pak> _pakCache = new Dictionary<string, Pak>();
+
         public PakFileEntry GetFileByPathWithMP(string filePath)
         {
             var allFilePaths = GetAllFilePathsByPakWithMP();
-            foreach(var pak in allFilePaths)
+            var pak = allFilePaths.Where(x => x.Value.Contains(filePath)).FirstOrDefault();
+            if (pak.Key == null) return null;
+            Pak pakObj;
+            if (_pakCache.ContainsKey(pak.Key))
             {
-                foreach(var file in pak.Value)
+                pakObj = _pakCache[pak.Key];
+            }
+            else
+            {
+                pakObj = Pak.FromFile(pak.Key, _aesKey);
+                _pakCache.Add(pak.Key, pakObj);
+            }
+
+            return pakObj.GetFile(filePath, true);
+        }
+
+        public PakFileEntry GetFileByPath(string filePath)
+        {
+            var allFilePaths = GetAllFilePathsByPak();
+            foreach (var pak in allFilePaths)
+            {
+                foreach (var file in pak.Value)
                 {
-                    if(file == filePath)
+                    if (file == filePath)
                     {
                         var pakObj = Pak.FromFile(pak.Key, _aesKey);
-                        return pakObj.GetFile(filePath, true);
+                        return pakObj.GetFile(filePath);
                     }
                 }
             }
             return null;
         }
 
-        public PakFileEntry GetFileByPath(string filePath)
+        public PakFileEntry GetFileByName(string filename)
         {
             var allFilePaths = GetAllFilePathsByPak();
-            foreach(var pak in allFilePaths)
+            foreach (var pak in allFilePaths)
             {
-                foreach(var file in pak.Value)
+                var found = pak.Value.FirstOrDefault(x => Path.GetFileName(x) == filename);
+                if (found != null)
                 {
-                    if(file == filePath)
-                    {
-                        var pakObj = Pak.FromFile(pak.Key, _aesKey);
-                        return pakObj.GetFile(filePath);
-                    }
+                    var pakObj = Pak.FromFile(pak.Key, _aesKey);
+                    return pakObj.GetFile(found);
                 }
             }
             return null;
