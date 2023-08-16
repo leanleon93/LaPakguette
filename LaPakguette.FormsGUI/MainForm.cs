@@ -69,7 +69,7 @@ namespace LaPakguette.FormsGUI
         private void SetAesKeyWithDialog()
         {
             var aesKeyForm = new AesKeyInputForm();
-            var currentKey = Convert.ToBase64String(_aesKey);
+            var currentKey = _aesKey != null ? Convert.ToBase64String(_aesKey) : "";
             aesKeyForm.AesKeyBase64 = currentKey;
             aesKeyForm.SetInitText(currentKey);
             aesKeyForm.ShowDialog();

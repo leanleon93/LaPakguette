@@ -118,6 +118,25 @@ namespace LaPakguette.PakLib.Models
             return pakObj.GetFile(filePath, true);
         }
 
+        public PakFileMetadata GetFileMetadataByPathWithMP(string filePath)
+        {
+            var allFilePaths = GetAllFilePathsByPakWithMP();
+            var pak = allFilePaths.Where(x => x.Value.Contains(filePath)).FirstOrDefault();
+            if (pak.Key == null) return null;
+            Pak pakObj;
+            if (_pakCache.ContainsKey(pak.Key))
+            {
+                pakObj = _pakCache[pak.Key];
+            }
+            else
+            {
+                pakObj = Pak.FromFile(pak.Key, _aesKey);
+                _pakCache.Add(pak.Key, pakObj);
+            }
+
+            return pakObj.GetFileMetadata(filePath, true);
+        }
+
         public PakFileEntry GetFileByPath(string filePath)
         {
             var allFilePaths = GetAllFilePathsByPak();

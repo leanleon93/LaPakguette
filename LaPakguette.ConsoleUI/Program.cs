@@ -2,6 +2,7 @@
 using LaPakguette.PakLib.Models;
 using System;
 using System.IO;
+using System.Text;
 
 namespace LaPakguette.ConsoleUI
 {
@@ -10,7 +11,7 @@ namespace LaPakguette.ConsoleUI
     {
         private static readonly string _livepak3 =
             @"F:\Games\BNS_LIVE\BNSR\Content\Paks\Pak_F_LP_172-WindowsNoEditor.pak";
-        private static readonly string _pakFolder = @"F:\Games\BNS_LIVE\BNSR\Content\Paks";
+        private static readonly string _pakFolder = @"F:\Games\ALL_BNS\Blade & Soul_Test_KR\BNSR\Content\Paks";
         private static readonly string _outPath = @"..\..\..\..\..\LaPakguette.PakLibTests\TestFiles\result\consoleResults";
         private static readonly string BASE64_AES_KEY = @"0uX3+U5iXv4nJrU2DBA5zny5q7dgqU83uxWm3Ah0FlY=";
         private static byte[] _aesKey;
@@ -18,8 +19,8 @@ namespace LaPakguette.ConsoleUI
         private static void Main(string[] args)
         {
             _aesKey = Convert.FromBase64String(BASE64_AES_KEY);
-            var pakGroup = PakGroup.FromFolder(@"F:\Games\BNS EU\BnS_UE4\BNSR\Content\Paks", _aesKey);
-            var file = pakGroup.GetFileByName("Skill_Trait_Icon_4.uasset");
+            //var pakGroup = PakGroup.FromFolder(@"F:\Games\ALL_BNS\Blade & Soul_Test_KR\BNSR\Content\Paks", _aesKey);
+            //var file = pakGroup.GetFileByName("MI_UIFX_AchievementWinter_BG_02.uasset");
             //RepackUnencrypted();
             DumpFullFileList();
             //var pak = Pak.FromFile(_livepak3, _aesKey);
@@ -45,15 +46,25 @@ namespace LaPakguette.ConsoleUI
             var outPath = Path.GetFullPath(_outPath);
             Directory.CreateDirectory(outPath);
             var group = PakGroup.FromFolder(_pakFolder, _aesKey);
-            var allFiles = group.GetAllFilePaths();
+            var allFiles = group.GetAllFilePathsWithMP();
             File.WriteAllLines(Path.Combine(outPath, "allFiles.txt"), allFiles);
-            var allFilesByPak = group.GetAllFilePathsByPak();
+
+            foreach (var file in allFiles)
+            {
+                string absolutePath = Path.Combine(_outPath, file.Replace("../", ""));
+                string directoryPath = Path.GetDirectoryName(absolutePath);
+                Directory.CreateDirectory(directoryPath);
+                // Create an empty file at the specified path
+                var hash = group.GetFileMetadataByPathWithMP(file).DataRecordSha1HashString;
+                File.WriteAllText(absolutePath, hash, Encoding.UTF8);
+            }
+            var allFilesByPak = group.GetAllFilePathsByPakWithMP();
             foreach (var pak in allFilesByPak)
             {
                 File.WriteAllLines(Path.Combine(outPath, $"{(Path.GetFileNameWithoutExtension(pak.Key))}.txt"), pak.Value);
             }
-            var file = group.GetFileByPath("xml64.dat");
-            file.SaveToFile(outPath);
+            //var file = group.GetFileByPath("xml64.dat");
+            //file.SaveToFile(outPath);
         }
     }
 }

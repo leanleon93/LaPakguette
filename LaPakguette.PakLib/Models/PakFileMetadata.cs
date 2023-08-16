@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using System.Text;
 
 namespace LaPakguette.PakLib.Models
 {
@@ -33,6 +34,7 @@ namespace LaPakguette.PakLib.Models
         public ulong UncompressedSize { get; set; }
         public uint CompressionMethod { get; set; }
         public byte[] DataRecordSha1Hash { get; set; }
+        public string DataRecordSha1HashString => ByteArrayToHexString(DataRecordSha1Hash);
         public uint CompressionBlockCount { get; set; }
         public CompressionBlock[] CompressionBlocks { get; set; }
         public bool IsEncrypted { get; set; }
@@ -61,6 +63,16 @@ namespace LaPakguette.PakLib.Models
 
             bw.Write((byte)(IsEncrypted ? 1 : 0));
             bw.Write(UncompressedCompressionBlockSize);
+        }
+
+        private static string ByteArrayToHexString(byte[] byteArray)
+        {
+            StringBuilder hexBuilder = new StringBuilder(byteArray.Length * 2);
+            foreach (byte b in byteArray)
+            {
+                hexBuilder.AppendFormat("{0:x2}", b);
+            }
+            return hexBuilder.ToString();
         }
     }
 }

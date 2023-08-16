@@ -168,6 +168,14 @@ namespace LaPakguette.PakLib.Models
             return new PakFileEntry(filename, file);
         }
 
+        public PakFileMetadata GetFileMetadata(string filename, bool withMp = false)
+        {
+            if (withMp) filename = filename.Replace(Index.MountPoint, "");
+            var indexOf = GetFileIndex(filename);
+            if (indexOf == -1) return null;
+            return DataRecords[indexOf].Metadata;
+        }
+
         public void ReplaceFile(string filename, byte[] newData)
         {
             var indexOf = GetFileIndex(filename);
