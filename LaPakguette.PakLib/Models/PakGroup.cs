@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
@@ -50,6 +51,32 @@ namespace LaPakguette.PakLib.Models
                 result.AddRange(paths);
             }
             _allFilePathsWithMPCache = result;
+            return result;
+        }
+
+        private Dictionary<string, string> _allFilenamesWithSha1HashesWithMPCache;
+        public Dictionary<string, string> GetAllFilePathsWithSha1HashWithMP()
+        {
+            if (_allFilenamesWithSha1HashesWithMPCache != null) return _allFilenamesWithSha1HashesWithMPCache;
+            var result = new Dictionary<string, string>();
+            foreach (var pakName in _paks)
+            {
+                var paths = Pak.GetAllFilenamesWithSha1HashesWithMP(pakName, _aesKey);
+                foreach (var path in paths)
+                {
+                    if (result.TryGetValue(path.Key, out var hash))
+                    {
+                        if (hash != path.Value)
+                        {
+                            throw new Exception("Key already exists");
+                        }
+                        //else ignore
+                        continue;
+                    }
+                    result.Add(path.Key, path.Value);
+                }
+            }
+            _allFilenamesWithSha1HashesWithMPCache = result;
             return result;
         }
 

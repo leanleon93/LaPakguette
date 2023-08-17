@@ -1,8 +1,12 @@
-﻿using LaPakguette.Lib;
-using LaPakguette.PakLib.Models;
+﻿using LaPakguette.PakLib.Models;
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
+using System.Threading;
+using System.Collections;
 
 namespace LaPakguette.ConsoleUI
 {
@@ -12,17 +16,18 @@ namespace LaPakguette.ConsoleUI
         private static readonly string _livepak3 =
             @"F:\Games\BNS_LIVE\BNSR\Content\Paks\Pak_F_LP_172-WindowsNoEditor.pak";
         private static readonly string _pakFolder = @"F:\Games\ALL_BNS\Blade & Soul_Test_KR\BNSR\Content\Paks";
+        private static readonly string _pakFolder2 = @"F:\Games\ALL_BNS\BnS_UE4\BNSR\Content\Paks";
         private static readonly string _outPath = @"..\..\..\..\..\LaPakguette.PakLibTests\TestFiles\result\consoleResults";
         private static readonly string BASE64_AES_KEY = @"0uX3+U5iXv4nJrU2DBA5zny5q7dgqU83uxWm3Ah0FlY=";
         private static byte[] _aesKey;
 
-        private static void Main(string[] args)
+        private static async Task Main(string[] args)
         {
             _aesKey = Convert.FromBase64String(BASE64_AES_KEY);
             //var pakGroup = PakGroup.FromFolder(@"F:\Games\ALL_BNS\Blade & Soul_Test_KR\BNSR\Content\Paks", _aesKey);
             //var file = pakGroup.GetFileByName("MI_UIFX_AchievementWinter_BG_02.uasset");
             //RepackUnencrypted();
-            DumpFullFileList();
+            await DumpFullFileList();
             //var pak = Pak.FromFile(_livepak3, _aesKey);
 
             //pak.ToFolder();
@@ -30,41 +35,75 @@ namespace LaPakguette.ConsoleUI
             //File.WriteAllBytes(_livepak3 + ".new", repack);
         }
 
-        private static void RepackUnencrypted()
+        //private static void RepackUnencrypted()
+        //{
+        //    var path = @"F:\Games\BNS_LIVE\BNSR\Content\Paks\broken\Pak_F_LP_2-WindowsNoEditor.pak";
+        //    var unrealpakPath = @"C:\Program Files\Epic Games\UE_4.25\Engine\Binaries\Win64\UnrealPak.exe";
+        //    var outPath = Path.Combine(Path.GetDirectoryName(path), Path.GetFileNameWithoutExtension(path));
+        //    Directory.CreateDirectory(outPath);
+        //    var pakhelper = new PakHandler(unrealpakPath);
+        //    pakhelper.Unpack(path, outPath);
+        //    pakhelper.Repack(path, true, false, false);
+        //}
+
+        private static async Task DumpFullFileList()
         {
-            var path = @"F:\Games\BNS_LIVE\BNSR\Content\Paks\broken\Pak_F_LP_2-WindowsNoEditor.pak";
-            var unrealpakPath = @"C:\Program Files\Epic Games\UE_4.25\Engine\Binaries\Win64\UnrealPak.exe";
-            var outPath = Path.Combine(Path.GetDirectoryName(path), Path.GetFileNameWithoutExtension(path));
-            Directory.CreateDirectory(outPath);
-            var pakhelper = new PakHandler(unrealpakPath);
-            pakhelper.Unpack(path, outPath);
-            pakhelper.Repack(path, true, false, false);
+            DumpRegion("KR", _pakFolder);
+            DumpRegion("EU", _pakFolder2);
         }
 
-        private static void DumpFullFileList()
+        private static void DumpRegion(string name, string pakFolder)
         {
-            var outPath = Path.GetFullPath(_outPath);
+            var outPath = Path.Combine(Path.GetFullPath(_outPath), name);
             Directory.CreateDirectory(outPath);
-            var group = PakGroup.FromFolder(_pakFolder, _aesKey);
-            var allFiles = group.GetAllFilePathsWithMP();
-            File.WriteAllLines(Path.Combine(outPath, "allFiles.txt"), allFiles);
+            var group = PakGroup.FromFolder(pakFolder, _aesKey);
+            var allFiles = group.GetAllFilePathsWithSha1HashWithMP();
+            //File.WriteAllLines(Path.Combine(outPath, "allFiles.txt"), allFiles.Select(x => x.Key).ToList());
+
+            var combinedPaths = new Dictionary<string, Dictionary<string, string>>();
 
             foreach (var file in allFiles)
             {
-                string absolutePath = Path.Combine(_outPath, file.Replace("../", ""));
-                string directoryPath = Path.GetDirectoryName(absolutePath);
-                Directory.CreateDirectory(directoryPath);
-                // Create an empty file at the specified path
-                var hash = group.GetFileMetadataByPathWithMP(file).DataRecordSha1HashString;
-                File.WriteAllText(absolutePath, hash, Encoding.UTF8);
+                var path = GetPathDepth(file.Key, 4);
+                if (!combinedPaths.ContainsKey(path))
+                {
+                    combinedPaths.Add(path, new Dictionary<string, string>() { { file.Key, file.Value } });
+                }
+                else
+                {
+                    combinedPaths[path].Add(file.Key, file.Value);
+                }
             }
-            var allFilesByPak = group.GetAllFilePathsByPakWithMP();
-            foreach (var pak in allFilesByPak)
+
+            foreach (var bundle in combinedPaths)
             {
-                File.WriteAllLines(Path.Combine(outPath, $"{(Path.GetFileNameWithoutExtension(pak.Key))}.txt"), pak.Value);
+                string absolutePath = Path.Combine(outPath, bundle.Key);
+                Directory.CreateDirectory(absolutePath);
+                var filePath = Path.Combine(absolutePath, "files.csv");
+                string[] lines = bundle.Value.Select(kvp => $"{kvp.Key.Replace("../", "").Replace(bundle.Key + "/", "")};{kvp.Value}").ToArray();
+                File.WriteAllText(filePath, "Path;SHA1" + Environment.NewLine, Encoding.Unicode);
+                File.AppendAllLines(filePath, lines, Encoding.Unicode);
             }
-            //var file = group.GetFileByPath("xml64.dat");
-            //file.SaveToFile(outPath);
+
+            Console.WriteLine($"{name} writing complete.");
+
         }
+
+        static string GetPathDepth(string nestedPath, int depth)
+        {
+            string[] pathSegments = nestedPath.Replace("../", "").Split("/");
+
+            if (depth >= 0 && depth < pathSegments.Length - 1)
+            {
+                string[] extractedSegments = new string[depth + 1];
+                Array.Copy(pathSegments, extractedSegments, depth + 1);
+                return string.Join(Path.DirectorySeparatorChar.ToString(), extractedSegments);
+            }
+            else
+            {
+                return Path.GetDirectoryName(nestedPath.Replace("../", "")); // Invalid depth or path has fewer segments
+            }
+        }
+
     }
 }

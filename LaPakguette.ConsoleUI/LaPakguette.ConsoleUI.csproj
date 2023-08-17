@@ -7,7 +7,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\LaPakguette.Lib\LaPakguette.Lib.csproj" />
     <ProjectReference Include="..\LaPakguette.PakLib\LaPakguette.PakLib.csproj" />
   </ItemGroup>
 

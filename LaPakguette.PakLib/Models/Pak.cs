@@ -88,6 +88,12 @@ namespace LaPakguette.PakLib.Models
             return pak.GetAllFilenamesWithMP();
         }
 
+        public static Dictionary<string, string> GetAllFilenamesWithSha1HashesWithMP(string pakFilePath, byte[] AES_KEY)
+        {
+            var pak = new Pak(pakFilePath, AES_KEY, true);
+            return pak.GetAllFilenamesWithSha1HashesWithMP();
+        }
+
         public static Pak FromBuffer(byte[] pakFileBuffer, byte[] AES_KEY)
         {
             try
@@ -281,9 +287,27 @@ namespace LaPakguette.PakLib.Models
             return allFilenames;
         }
 
+        public Dictionary<string, string> GetAllFilenamesWithSha1HashesWithMP()
+        {
+            var allFilenames = this.GetAllFilenamesWithSha1Hashes();
+            foreach (var item in allFilenames.ToList())
+            {
+                string file = item.Key;
+                file = Index.MountPoint + file;
+                allFilenames[file] = item.Value;
+                allFilenames.Remove(item.Key);
+            }
+            return allFilenames;
+        }
+
         public List<string> GetAllFilenames()
         {
             return Index.Records.Select(x => x.FileName).ToList();
+        }
+
+        public Dictionary<string, string> GetAllFilenamesWithSha1Hashes()
+        {
+            return Index.Records.ToDictionary(x => x.FileName, x => x.Metadata.DataRecordSha1HashString);
         }
     }
 }
