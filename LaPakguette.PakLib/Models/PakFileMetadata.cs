@@ -20,7 +20,8 @@ namespace LaPakguette.PakLib.Models
             {
                 CompressionBlockCount = br.ReadUInt32();
                 CompressionBlocks = new CompressionBlock[CompressionBlockCount];
-                for (var i = 0; i < CompressionBlockCount; i++) CompressionBlocks[i] = new CompressionBlock(br);
+                for (var i = 0; i < CompressionBlockCount; i++)
+                    CompressionBlocks[i] = new CompressionBlock(br);
             }
 
             IsEncrypted = br.ReadByte() == 1;

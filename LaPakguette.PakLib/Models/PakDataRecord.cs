@@ -38,7 +38,8 @@ namespace LaPakguette.PakLib.Models
         {
             get
             {
-                if (_accessed) return _data;
+                if (_accessed)
+                    return _data;
                 DecryptData(_aesKey);
                 DecompressData((int)MetadataSize, _compressionMethods);
                 _accessed = true;
@@ -51,7 +52,8 @@ namespace LaPakguette.PakLib.Models
         {
             if (Metadata.IsEncrypted && !_accessed)
             {
-                if (aesKey == null) throw new Exception("No aes key provided. File is encrypted.");
+                if (aesKey == null)
+                    throw new Exception("No aes key provided. File is encrypted.");
                 var decrypted = AesHandler.DecryptAES(_data, aesKey);
                 _data = new byte[Metadata.DataRecordSize];
                 Array.Copy(decrypted, 0, _data, 0, _data.Length);
@@ -62,7 +64,8 @@ namespace LaPakguette.PakLib.Models
         {
             if (encrypt)
             {
-                if (aesKey == null) throw new Exception("No aes key provided. File can not be encrypted.");
+                if (aesKey == null)
+                    throw new Exception("No aes key provided. File can not be encrypted.");
                 (_data, _) = AesHandler.EncryptAES(_data, aesKey);
             }
         }
@@ -87,10 +90,10 @@ namespace LaPakguette.PakLib.Models
 
                         Array.Copy(_data, i * MaxChunkSize, chunks[i], 0, chunks[i].Length);
                         var compressedData = new byte[0];
-                        if (compressionMethod == "Oodle" || compressionMethod == "oodle")
+                        if (IsOodleCompression(compressionMethod))
                             compressedData = Oodle.Compress(chunks[i], OodleFormat.Kraken,
                                 OodleCompressionLevel.Normal);
-                        if (compressionMethod == "Zlib" || compressionMethod == "zlib")
+                        if (IsZlibCompression(compressionMethod))
                             compressedData = ZlibStream.CompressBuffer(chunks[i]);
                         var chunkSize = compressedData.Length;
                         if (encrypt)
@@ -113,9 +116,9 @@ namespace LaPakguette.PakLib.Models
                 {
                     Metadata.CompressionBlockCount = 1;
 
-                    if (compressionMethod == "Oodle" || compressionMethod == "oodle")
+                    if (IsOodleCompression(compressionMethod))
                         _data = Oodle.Compress(_data, OodleFormat.Kraken, OodleCompressionLevel.Normal);
-                    if (compressionMethod == "Zlib" || compressionMethod == "zlib")
+                    if (IsZlibCompression(compressionMethod))
                         _data = ZlibStream.CompressBuffer(_data);
                 }
             }
@@ -147,7 +150,7 @@ namespace LaPakguette.PakLib.Models
                             br2.BaseStream.Position = (long)compressionBlock.CompressedDataStartOffset;
                             var chunk = br2.ReadBytes((int)compressionBlock.CompressedDataEndOffset -
                                                       (int)compressionBlock.CompressedDataStartOffset);
-                            if (compressionMethod == "Oodle" || compressionMethod == "oodle")
+                            if (IsOodleCompression(compressionMethod))
                             {
                                 var uncompressedBlockSize = (int)Metadata.UncompressedCompressionBlockSize;
                                 if (i + 1 == Metadata.CompressionBlocks.Length)
@@ -156,7 +159,7 @@ namespace LaPakguette.PakLib.Models
                                 chunk = Oodle.Decompress(chunk, uncompressedBlockSize);
                             }
 
-                            if (compressionMethod == "Zlib" || compressionMethod == "zlib")
+                            if (IsZlibCompression(compressionMethod))
                                 chunk = ZlibStream.UncompressBuffer(chunk);
                             chunks.Add(chunk);
                         }
@@ -166,12 +169,24 @@ namespace LaPakguette.PakLib.Models
                 }
                 else
                 {
-                    if (compressionMethod == "Oodle" || compressionMethod == "oodle")
+                    if (IsOodleCompression(compressionMethod))
                         _data = Oodle.Decompress(_data, (int)Metadata.UncompressedSize);
-                    if (compressionMethod == "Zlib" || compressionMethod == "zlib")
+                    if (IsZlibCompression(compressionMethod))
                         _data = ZlibStream.UncompressBuffer(_data);
                 }
             }
+        }
+
+        private const string OODLE = "oodle", ZLIB = "zlib";
+
+        private static bool IsOodleCompression(string compressionMethod)
+        {
+            return compressionMethod.ToLower() == OODLE;
+        }
+
+        private static bool IsZlibCompression(string compressionMethod)
+        {
+            return compressionMethod.ToLower() == ZLIB;
         }
 
         internal PakFileMetadata WriteToStream(BinaryWriter bw, bool compress, bool encrypt,

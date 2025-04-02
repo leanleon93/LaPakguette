@@ -9,6 +9,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="TestFiles\result\consoleResults\**" />
+    <EmbeddedResource Remove="TestFiles\result\consoleResults\**" />
+    <None Remove="TestFiles\result\consoleResults\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Compile Remove="AesTests.cs" />
   </ItemGroup>
 

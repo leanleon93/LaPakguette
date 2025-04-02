@@ -43,7 +43,8 @@ namespace LaPakguette.PakLib
 
         private static byte[] RemovePadding(byte[] padded, int origSize)
         {
-            if (origSize == padded.Length) return padded;
+            if (origSize == padded.Length)
+                return padded;
             var temp = padded;
             var output = new byte[origSize];
             Array.Copy(temp, 0, output, 0, origSize);
@@ -52,9 +53,11 @@ namespace LaPakguette.PakLib
 
         internal static byte[] AddPadding(byte[] buffer, bool decrypt = false, byte[] padData = null)
         {
-            if (padData == null) padData = buffer;
+            if (padData == null)
+                padData = buffer;
             var sizePadded = CalculatePaddedSize(buffer.Length, decrypt);
-            if (sizePadded == buffer.Length) return buffer;
+            if (sizePadded == buffer.Length)
+                return buffer;
             var temp = new byte[sizePadded];
             buffer.CopyTo(temp, 0);
             var remainingLength = temp.Length - buffer.Length;
@@ -73,7 +76,8 @@ namespace LaPakguette.PakLib
         internal static int CalculatePaddedSize(int size, bool decrypt = false, byte[] customAesKey = null)
         {
             var AES_BLOCK_SIZE = 16;
-            if (!decrypt && size % AES_BLOCK_SIZE == 0) return size;
+            if (!decrypt && size % AES_BLOCK_SIZE == 0)
+                return size;
             return size + (AES_BLOCK_SIZE - size % AES_BLOCK_SIZE);
         }
     }

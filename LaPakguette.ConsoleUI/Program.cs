@@ -5,8 +5,6 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using System.Threading;
-using System.Collections;
 
 namespace LaPakguette.ConsoleUI
 {
@@ -15,8 +13,9 @@ namespace LaPakguette.ConsoleUI
     {
         private static readonly string _livepak3 =
             @"F:\Games\BNS_LIVE\BNSR\Content\Paks\Pak_F_LP_172-WindowsNoEditor.pak";
-        private static readonly string _pakFolder = @"F:\Games\ALL_BNS\Blade & Soul_Test_KR\BNSR\Content\Paks";
-        private static readonly string _pakFolder2 = @"F:\Games\ALL_BNS\BnS_UE4\BNSR\Content\Paks";
+        private static readonly string _pakFolderKRT = @"F:\Games\ALL_BNS\Blade & Soul_Test_KR\BNSR\Content\Paks";
+        private static readonly string _pakFolderKR = @"F:\Games\ALL_BNS\Blade & Soul_KR\BNSR\Content\Paks";
+        private static readonly string _pakFolderEU = @"F:\Games\ALL_BNS\BnS_UE4\BNSR\Content\Paks";
         private static readonly string _outPath = @"..\..\..\..\..\LaPakguette.PakLibTests\TestFiles\result\consoleResults";
         private static readonly string BASE64_AES_KEY = @"0uX3+U5iXv4nJrU2DBA5zny5q7dgqU83uxWm3Ah0FlY=";
         private static byte[] _aesKey;
@@ -48,8 +47,9 @@ namespace LaPakguette.ConsoleUI
 
         private static async Task DumpFullFileList()
         {
-            DumpRegion("KR", _pakFolder);
-            DumpRegion("EU", _pakFolder2);
+            //DumpRegion("KRT", _pakFolderKRT);
+            DumpRegion("KR", _pakFolderKR);
+            //DumpRegion("EU", _pakFolderEU);
         }
 
         private static void DumpRegion(string name, string pakFolder)

@@ -23,7 +23,8 @@ namespace LaPakguette.PakLib.Models
             {
                 var info = new FileInfo(file);
                 var relPath = Path.GetRelativePath(folderPath, info.FullName);
-                if (relPath == MountpointFileName) continue;
+                if (relPath == MountpointFileName)
+                    continue;
                 relPath = relPath.Replace('\\', '/');
                 AddFile(new PakFileEntry(relPath, File.ReadAllBytes(file)));
             }
@@ -61,7 +62,8 @@ namespace LaPakguette.PakLib.Models
                 IndexEncrypted = br.ReadByte() == 1;
                 Footer = new PakFooter(br);
                 Index = new PakIndex(br, (long)Footer.IndexOffset, (int)Footer.IndexSize, IndexEncrypted, AES_KEY);
-                if (indexOnly) return;
+                if (indexOnly)
+                    return;
                 DataRecords = new PakDataRecord[Index.RecordCount];
                 for (var i = 0; i < Index.RecordCount; i++)
                 {
@@ -112,7 +114,8 @@ namespace LaPakguette.PakLib.Models
             try
             {
                 var mpPath = Path.Combine(folderPath, MountpointFileName);
-                if (!File.Exists(mpPath)) throw new FileNotFoundException("No mountpoint file present.");
+                if (!File.Exists(mpPath))
+                    throw new FileNotFoundException("No mountpoint file present.");
                 var mp = File.ReadAllText(mpPath);
                 return new Pak(folderPath, mp, AES_KEY);
             }
@@ -126,7 +129,8 @@ namespace LaPakguette.PakLib.Models
         public byte[] ToByteArray(bool compress, bool encrypt, bool encryptIndex, CompressionMethod compressionMethod,
             byte[] AES_KEY = null)
         {
-            if (AES_KEY == null) AES_KEY = this.AES_KEY;
+            if (AES_KEY == null)
+                AES_KEY = this.AES_KEY;
             IndexEncrypted = encryptIndex;
             using (var ms = new MemoryStream())
             {
@@ -167,32 +171,38 @@ namespace LaPakguette.PakLib.Models
 
         public PakFileEntry GetFile(string filename, bool withMp = false)
         {
-            if (withMp) filename = filename.Replace(Index.MountPoint, "");
+            if (withMp)
+                filename = filename.Replace(Index.MountPoint, "");
             var indexOf = GetFileIndex(filename);
-            if (indexOf == -1) return null;
+            if (indexOf == -1)
+                return null;
             var file = DataRecords[indexOf].Data;
             return new PakFileEntry(filename, file);
         }
 
         public PakFileMetadata GetFileMetadata(string filename, bool withMp = false)
         {
-            if (withMp) filename = filename.Replace(Index.MountPoint, "");
+            if (withMp)
+                filename = filename.Replace(Index.MountPoint, "");
             var indexOf = GetFileIndex(filename);
-            if (indexOf == -1) return null;
+            if (indexOf == -1)
+                return null;
             return DataRecords[indexOf].Metadata;
         }
 
         public void ReplaceFile(string filename, byte[] newData)
         {
             var indexOf = GetFileIndex(filename);
-            if (indexOf == -1) return;
+            if (indexOf == -1)
+                return;
             DataRecords[indexOf].Data = newData;
         }
 
         public void RemoveFile(string filename)
         {
             var indexOf = GetFileIndex(filename);
-            if (indexOf == -1) return;
+            if (indexOf == -1)
+                return;
             DataRecords = DataRecords.RemoveAt(indexOf);
             Index.Records = Index.Records.RemoveAt(indexOf);
         }
@@ -205,8 +215,9 @@ namespace LaPakguette.PakLib.Models
 
         private int GetFileIndex(string filename)
         {
-            var indexRecord = Index.Records.FirstOrDefault(x => x.FileName == filename);
-            if (indexRecord == null) return -1;
+            var indexRecord = Index.Records.FirstOrDefault(x => x.FileName.Equals(filename, StringComparison.InvariantCultureIgnoreCase));
+            if (indexRecord == null)
+                return -1;
             return Array.IndexOf(Index.Records, indexRecord);
         }
 
@@ -240,7 +251,8 @@ namespace LaPakguette.PakLib.Models
         {
             try
             {
-                if (unpackDir == null) unpackDir = PakPath.Replace(Regex.Match(PakPath, @"\..*").Value, "");
+                if (unpackDir == null)
+                    unpackDir = PakPath.Replace(Regex.Match(PakPath, @"\..*").Value, "");
                 Directory.CreateDirectory(unpackDir);
                 for (var i = 0; i < Index.RecordCount; i++)
                 {

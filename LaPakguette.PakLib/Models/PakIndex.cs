@@ -22,7 +22,8 @@ namespace LaPakguette.PakLib.Models
             var buffer = br.ReadBytes(indexSize);
             if (encrypted)
             {
-                if (AES_KEY == null) throw new Exception("No aes key provided. File is encrypted.");
+                if (AES_KEY == null)
+                    throw new Exception("No aes key provided. File is encrypted.");
                 buffer = AesHandler.DecryptAES(buffer, AES_KEY);
             }
 
@@ -46,7 +47,8 @@ namespace LaPakguette.PakLib.Models
 
                     var recordCount = br2.ReadUInt32();
                     Records = new PakIndexRecord[recordCount];
-                    for (var i = 0; i < recordCount; i++) Records[i] = new PakIndexRecord(br2);
+                    for (var i = 0; i < recordCount; i++)
+                        Records[i] = new PakIndexRecord(br2);
                 }
             }
         }
@@ -82,7 +84,8 @@ namespace LaPakguette.PakLib.Models
                     }
 
                     bw2.Write(Records.Length);
-                    for (var i = 0; i < Records.Length; i++) Records[i].WriteToStream(bw2);
+                    for (var i = 0; i < Records.Length; i++)
+                        Records[i].WriteToStream(bw2);
                     indexData = ms.ToArray();
                 }
             }

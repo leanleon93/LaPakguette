@@ -20,7 +20,8 @@ namespace LaPakguette.PakLib.Models
         internal static string[] GetNames(this List<CompressionMethod> compressionMethods)
         {
             var result = new string[compressionMethods.Count];
-            for (var i = 0; i < compressionMethods.Count; i++) result[i] = compressionMethods[i].GetName();
+            for (var i = 0; i < compressionMethods.Count; i++)
+                result[i] = compressionMethods[i].GetName();
             return result;
         }
     }

@@ -58,7 +58,7 @@ namespace LaPakguette.FormsGUI
                     var cachedpathseparator = "/".ToCharArray();
                     var nodeFullPath = node.FullPath.TrimStart('/');
                     string previousSubPath = null;
-                    foreach (var path in _allFilesWithMP.Where(x => x.StartsWith(nodeFullPath)))
+                    foreach (var path in _allFilesWithMP.Where(x => x.StartsWith(nodeFullPath, StringComparison.InvariantCultureIgnoreCase)))
                     {
                         var currentnode = node;
                         var pathSplit = path.Split(cachedpathseparator);
@@ -122,7 +122,7 @@ namespace LaPakguette.FormsGUI
             else
             {
                 var allFilenames = _pakGroup.GetAllFilePathsWithMP();
-                var filenames = allFilenames.Where(x => x.StartsWith(_rightClickedPath + "/")).ToList();
+                var filenames = allFilenames.Where(x => x.StartsWith(_rightClickedPath + "/", StringComparison.InvariantCultureIgnoreCase)).ToList();
                 var unpackDir = _pakGroup.Folder;
                 foreach (var filename in filenames)
                 {
@@ -136,5 +136,80 @@ namespace LaPakguette.FormsGUI
                 }
             }
         }
+
+        private void showMountpointToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            var fullpath = _rightClickedPath;
+            var mp = Path.GetDirectoryName(_rightClickedPath).Replace("\\", "/") + "/";
+
+            if (Path.HasExtension(_rightClickedPath))
+            {
+                var pakName = _pakGroup.GetPakNameByPathWithMP(_rightClickedPath);
+
+                MessageBox.Show($"Pak Name: {pakName}\nFull Path: {fullpath}\nMountpoint: {mp}", "Details");
+            }
+            else
+            {
+                MessageBox.Show($"Full Path: {fullpath}\nMountpoint: {mp}", "Details");
+            }
+        }
+
+        private void createModToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            CreateModForFile(false);
+        }
+
+        private void createRemovalModToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            CreateModForFile(true);
+        }
+
+        private void CreateModForFile(bool removalMod = false)
+        {
+            var fullpath = _rightClickedPath;
+            var mp = Path.GetDirectoryName(_rightClickedPath).Replace("\\", "/") + "/";
+            var unpackDir = _pakGroup.Folder;
+            unpackDir = Path.Combine(unpackDir, "Mods");
+            var modDir = unpackDir;
+
+            if (Path.HasExtension(_rightClickedPath))
+            {
+                var file = _pakGroup.GetFileByPathWithMP(_rightClickedPath);
+                var pakName = _pakGroup.GetPakNameByPathWithMP(_rightClickedPath);
+
+                unpackDir = Path.Combine(unpackDir, Path.GetFileNameWithoutExtension(pakName) + "_p");
+                var mpFilePath = Path.Combine(unpackDir, "lapakguette_mp.txt");
+
+                var outfilepath = fullpath.Replace("../", "").Replace(file.Name, "");
+                var filePath = Path.Combine(unpackDir, outfilepath, file.Name);
+                Directory.CreateDirectory(Path.GetDirectoryName(filePath));
+                if (!File.Exists(filePath))
+                {
+                    File.WriteAllBytes(filePath, removalMod ? new byte[16] : file.Data);
+                }
+
+                var relPathDir = Path.GetDirectoryName(Path.GetRelativePath(unpackDir, filePath)).Replace("\\", "/") + "/";
+                mp = mp.Replace(relPathDir, "");
+                File.WriteAllText(mpFilePath, mp);
+
+                var sigPath = Path.Combine(_pakGroup.Folder, pakName.Replace(".pak", ".sig"));
+                var sigOutPath = Path.Combine(modDir, pakName.Replace(".pak", "_p.sig"));
+                if (File.Exists(sigPath) && !File.Exists(sigOutPath))
+                {
+                    File.Copy(sigPath, sigOutPath);
+                }
+                var pakPath = Path.Combine(_pakGroup.Folder, pakName);
+                var pakOutPath = Path.Combine(modDir, pakName.Replace(".pak", "_p.pak"));
+                if (!File.Exists(pakOutPath))
+                {
+                    File.Copy(pakPath, pakOutPath);
+                }
+            }
+            else
+            {
+                MessageBox.Show($"Not implemented!");
+            }
+        }
+
     }
 }
