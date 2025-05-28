@@ -172,7 +172,7 @@ namespace LaPakguette.PakLib.Models
         public PakFileEntry GetFile(string filename, bool withMp = false)
         {
             if (withMp)
-                filename = filename.Replace(Index.MountPoint, "");
+                filename = filename.Replace(Index.MountPoint, "", StringComparison.InvariantCultureIgnoreCase);
             var indexOf = GetFileIndex(filename);
             if (indexOf == -1)
                 return null;
