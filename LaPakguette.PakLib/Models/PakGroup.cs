@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.Serialization.Json;
 
 namespace LaPakguette.PakLib.Models
 {
@@ -135,7 +136,7 @@ namespace LaPakguette.PakLib.Models
         public PakFileEntry GetFileByPathWithMP(string filePath)
         {
             var allFilePaths = GetAllFilePathsByPakWithMP();
-            var pak = allFilePaths.FirstOrDefault(x => x.Value.Contains(filePath, StringComparer.InvariantCultureIgnoreCase));
+            var pak = allFilePaths.FirstOrDefault(x => x.Value.Contains(filePath, StringComparer.OrdinalIgnoreCase));
             if (pak.Key == null)
                 return null;
             Pak pakObj;
@@ -155,7 +156,7 @@ namespace LaPakguette.PakLib.Models
         public string GetPakNameByPathWithMP(string filePath)
         {
             var allFilePaths = GetAllFilePathsByPakWithMP();
-            var pak = allFilePaths.FirstOrDefault(x => x.Value.Contains(filePath, StringComparer.InvariantCultureIgnoreCase));
+            var pak = allFilePaths.FirstOrDefault(x => x.Value.Contains(filePath, StringComparer.OrdinalIgnoreCase));
 
             return Path.GetFileName(pak.Key);
         }
@@ -163,7 +164,7 @@ namespace LaPakguette.PakLib.Models
         public PakFileMetadata GetFileMetadataByPathWithMP(string filePath)
         {
             var allFilePaths = GetAllFilePathsByPakWithMP();
-            var pak = allFilePaths.FirstOrDefault(x => x.Value.Contains(filePath, StringComparer.InvariantCultureIgnoreCase));
+            var pak = allFilePaths.FirstOrDefault(x => x.Value.Contains(filePath, StringComparer.OrdinalIgnoreCase));
             if (pak.Key == null)
                 return null;
             Pak pakObj;
@@ -187,7 +188,7 @@ namespace LaPakguette.PakLib.Models
             {
                 foreach (var file in pak.Value)
                 {
-                    if (file == filePath)
+                    if (file.Equals(filePath, StringComparison.OrdinalIgnoreCase))
                     {
                         var pakObj = Pak.FromFile(pak.Key, _aesKey);
                         return pakObj.GetFile(filePath);
@@ -202,7 +203,7 @@ namespace LaPakguette.PakLib.Models
             var allFilePaths = GetAllFilePathsByPak();
             foreach (var pak in allFilePaths)
             {
-                var found = pak.Value.Find(x => Path.GetFileName(x).Equals(filename, StringComparison.InvariantCultureIgnoreCase));
+                var found = pak.Value.Find(x => Path.GetFileName(x).Equals(filename, StringComparison.OrdinalIgnoreCase));
                 if (found != null)
                 {
                     var pakObj = Pak.FromFile(pak.Key, _aesKey);
