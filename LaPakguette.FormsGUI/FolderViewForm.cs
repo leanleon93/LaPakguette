@@ -65,7 +65,8 @@ namespace LaPakguette.FormsGUI
                         if (pathSplit.Length > level)
                         {
                             var subPath = pathSplit[level];
-                            if (previousSubPath != null && previousSubPath == subPath) continue;
+                            if (previousSubPath != null && previousSubPath == subPath)
+                                continue;
                             previousSubPath = subPath;
                             if (!currentnode.Nodes.ContainsKey(subPath))
                             {
@@ -127,7 +128,8 @@ namespace LaPakguette.FormsGUI
                 foreach (var filename in filenames)
                 {
                     var outFilePathTest = Path.Combine(unpackDir, filename.Replace("../", ""));
-                    if (File.Exists(outFilePathTest)) continue;
+                    if (File.Exists(outFilePathTest))
+                        continue;
                     var file = _pakGroup.GetFileByPathWithMP(filename);
                     var outfilepath = filename.Replace("../", "").Replace(file.Name, "");
                     var filePath = Path.Combine(unpackDir, outfilepath, file.Name);

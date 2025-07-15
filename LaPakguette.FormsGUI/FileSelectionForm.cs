@@ -48,7 +48,8 @@ namespace LaPakguette.FormsGUI
             foreach (var path in paths)
             {
                 var currentnode = thisnode;
-                foreach (var subPath in path.Split(cachedpathseparator)) currentnode = currentnode.Nodes[subPath] ??
+                foreach (var subPath in path.Split(cachedpathseparator))
+                    currentnode = currentnode.Nodes[subPath] ??
                     currentnode.Nodes.Add(subPath, subPath);
             }
 
@@ -115,7 +116,8 @@ namespace LaPakguette.FormsGUI
                     toolStripStatusLabel1.Text = "Adding file to: /" + _rightClickedPath + "...";
                     statusStrip1.Refresh();
                     var filePath = openFileDialog.FileName;
-                    if (filePath == "") return;
+                    if (filePath == "")
+                        return;
 
                     if (File.Exists(filePath))
                     {
@@ -137,7 +139,8 @@ namespace LaPakguette.FormsGUI
                     toolStripStatusLabel1.Text = "Replacing: /" + _rightClickedPath + "...";
                     statusStrip1.Refresh();
                     var filePath = openFileDialog.FileName;
-                    if (filePath == "") return;
+                    if (filePath == "")
+                        return;
                     if (File.Exists(filePath))
                     {
                         _pak.ReplaceFile(_rightClickedPath, File.ReadAllBytes(filePath));

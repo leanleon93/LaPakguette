@@ -32,7 +32,8 @@ namespace LaPakguette.FormsGUI
                 try
                 {
                     _settings = JsonConvert.DeserializeObject<Settings>(File.ReadAllText(_settingsPath));
-                    if (_settings != null) _pakPath = _settings.LastSelectedPak;
+                    if (_settings != null)
+                        _pakPath = _settings.LastSelectedPak;
                     pakPathTextBox.Text = _pakPath;
                 }
                 catch
@@ -184,7 +185,8 @@ namespace LaPakguette.FormsGUI
             try
             {
                 _pak = Pak.FromFile(_pakPath, _aesKey);
-                if (reopen) _fileSelectionForm = new FileSelectionForm();
+                if (reopen)
+                    _fileSelectionForm = new FileSelectionForm();
                 if (reopen || reload)
                 {
                     _fileSelectionForm.Text = _pak.GetName();
@@ -192,7 +194,8 @@ namespace LaPakguette.FormsGUI
                     _fileSelectionForm.SetParent(this);
                 }
 
-                if (reopen) _fileSelectionForm.Show();
+                if (reopen)
+                    _fileSelectionForm.Show();
             }
             catch (Exception ex)
             {
@@ -202,9 +205,12 @@ namespace LaPakguette.FormsGUI
 
         private CompressionMethod GetCompressionMethod()
         {
-            if (!compressCheckBox.Checked) return CompressionMethod.None;
-            if (oodleCompression.Checked) return CompressionMethod.Oodle;
-            if (zlibCompression.Checked) return CompressionMethod.Zlib;
+            if (!compressCheckBox.Checked)
+                return CompressionMethod.None;
+            if (oodleCompression.Checked)
+                return CompressionMethod.Oodle;
+            if (zlibCompression.Checked)
+                return CompressionMethod.Zlib;
             return CompressionMethod.None;
         }
 

@@ -1,5 +1,6 @@
 using LaPakguette.PakLib.Models;
 using NUnit.Framework;
+using NUnit.Framework.Legacy;
 using System;
 using System.IO;
 using System.Linq;
@@ -17,7 +18,7 @@ namespace LaPakguette.PakLibTests
         [SetUp]
         public void Setup()
         {
-            _testFileBasePath = Path.Combine(Environment.CurrentDirectory, @"..\..\..\..\TestFiles\");
+            _testFileBasePath = Path.Combine(Environment.CurrentDirectory, @"..\..\..\TestFiles\");
             _aesKey = Convert.FromBase64String(BASE64_AES_KEY);
         }
 
@@ -25,10 +26,10 @@ namespace LaPakguette.PakLibTests
         public void SetupFromFileTest()
         {
             var localPath = Path.Combine(_testFileBasePath, @"in\Pak0-Local.pak");
-            Assert.DoesNotThrow(() =>
+            ClassicAssert.DoesNotThrow(() =>
             {
                 var pakObj = Pak.FromFile(localPath, _aesKey);
-                Assert.NotNull(pakObj);
+                ClassicAssert.NotNull(pakObj);
             });
         }
 
@@ -36,10 +37,10 @@ namespace LaPakguette.PakLibTests
         public void SetupFromEncryptedFileTest()
         {
             var localPath = Path.Combine(_testFileBasePath, @"in\Pak0-Local_compress_encrypt.pak");
-            Assert.DoesNotThrow(() =>
+            ClassicAssert.DoesNotThrow(() =>
             {
                 var pakObj = Pak.FromFile(localPath, _aesKey);
-                Assert.NotNull(pakObj);
+                ClassicAssert.NotNull(pakObj);
             });
         }
 
@@ -47,13 +48,13 @@ namespace LaPakguette.PakLibTests
         public void SetupFromFolderEqualsFileTest()
         {
             var folderPath = Path.Combine(_testFileBasePath, @"in\Pak0-Local");
-            Assert.DoesNotThrow(() =>
+            ClassicAssert.DoesNotThrow(() =>
             {
                 var pakObj = Pak.FromFolder(folderPath, _aesKey);
-                Assert.NotNull(pakObj);
+                ClassicAssert.NotNull(pakObj);
                 var outPath = Path.Combine(_testFileBasePath, @"result\Pak0-Local");
                 pakObj.ToFolder(outPath);
-                Assert.True(UnpackResultEqual(outPath));
+                ClassicAssert.True(UnpackResultEqual(outPath));
                 Directory.Delete(outPath, true);
             });
         }
@@ -62,11 +63,11 @@ namespace LaPakguette.PakLibTests
         public void SetupFromBufferTest()
         {
             var localPath = Path.Combine(_testFileBasePath, @"in\Pak0-Local.pak");
-            Assert.DoesNotThrow(() =>
+            ClassicAssert.DoesNotThrow(() =>
             {
                 var buffer = File.ReadAllBytes(localPath);
                 var pakObj = Pak.FromBuffer(buffer, _aesKey);
-                Assert.NotNull(pakObj);
+                ClassicAssert.NotNull(pakObj);
             });
         }
 
@@ -74,16 +75,16 @@ namespace LaPakguette.PakLibTests
         public void RepackTestOodle()
         {
             var localPath = Path.Combine(_testFileBasePath, @"in\Pak0-Local.pak");
-            Assert.DoesNotThrow(() =>
+            ClassicAssert.DoesNotThrow(() =>
             {
                 var pakObj = Pak.FromFile(localPath, _aesKey);
-                Assert.NotNull(pakObj);
+                ClassicAssert.NotNull(pakObj);
                 var repackedBuffer = pakObj.ToByteArray(true, false, false, CompressionMethod.Oodle, _aesKey);
                 var comparePath = Path.Combine(_testFileBasePath, @"compare\Pak0-Local_compress.pak");
                 var origBuffer = File.ReadAllBytes(comparePath);
                 var outPath = Path.Combine(_testFileBasePath, @"result\Pak0-Local_compress.pak");
                 File.WriteAllBytes(outPath, repackedBuffer);
-                Assert.True(BuffersAreEqual(repackedBuffer, origBuffer));
+                ClassicAssert.True(BuffersAreEqual(repackedBuffer, origBuffer));
                 File.Delete(outPath);
             });
         }
@@ -92,16 +93,16 @@ namespace LaPakguette.PakLibTests
         public void RepackTestOodleEncrypted()
         {
             var localPath = Path.Combine(_testFileBasePath, @"in\Pak0-Local.pak");
-            Assert.DoesNotThrow(() =>
+            ClassicAssert.DoesNotThrow(() =>
             {
                 var pakObj = Pak.FromFile(localPath, _aesKey);
-                Assert.NotNull(pakObj);
+                ClassicAssert.NotNull(pakObj);
                 var repackedBuffer = pakObj.ToByteArray(true, true, true, CompressionMethod.Oodle, _aesKey);
                 var comparePath = Path.Combine(_testFileBasePath, @"compare\Pak0-Local_compress_encrypt.pak");
                 var origBuffer = File.ReadAllBytes(comparePath);
                 var outPath = Path.Combine(_testFileBasePath, @"result\Pak0-Local_compress_encrypt.pak");
                 File.WriteAllBytes(outPath, repackedBuffer);
-                Assert.True(BuffersAreEqual(repackedBuffer, origBuffer));
+                ClassicAssert.True(BuffersAreEqual(repackedBuffer, origBuffer));
                 File.Delete(outPath);
             });
         }
@@ -110,10 +111,10 @@ namespace LaPakguette.PakLibTests
         public void RepackTestZlibEncryptedNoException() //Tested with the unpack zlib test
         {
             var localPath = Path.Combine(_testFileBasePath, @"in\Pak0-Local.pak");
-            Assert.DoesNotThrow(() =>
+            ClassicAssert.DoesNotThrow(() =>
             {
                 var pakObj = Pak.FromFile(localPath, _aesKey);
-                Assert.NotNull(pakObj);
+                ClassicAssert.NotNull(pakObj);
                 var repackedBuffer = pakObj.ToByteArray(true, true, true, CompressionMethod.Zlib, _aesKey);
                 var outPath = Path.Combine(_testFileBasePath, @"result\Pak0-Local_zlib.pak");
             });
@@ -123,16 +124,16 @@ namespace LaPakguette.PakLibTests
         public void RepackTestNothing()
         {
             var localPath = Path.Combine(_testFileBasePath, @"in\Pak0-Local.pak");
-            Assert.DoesNotThrow(() =>
+            ClassicAssert.DoesNotThrow(() =>
             {
                 var pakObj = Pak.FromFile(localPath, _aesKey);
-                Assert.NotNull(pakObj);
+                ClassicAssert.NotNull(pakObj);
                 var repackedBuffer = pakObj.ToByteArray(false, false, false, CompressionMethod.None, _aesKey);
                 var comparePath = Path.Combine(_testFileBasePath, @"compare\Pak0-Local_nothing.pak");
                 var origBuffer = File.ReadAllBytes(comparePath);
                 var outPath = Path.Combine(_testFileBasePath, @"result\Pak0-Local_nothing.pak");
                 File.WriteAllBytes(outPath, repackedBuffer);
-                Assert.True(BuffersAreEqual(repackedBuffer, origBuffer));
+                ClassicAssert.True(BuffersAreEqual(repackedBuffer, origBuffer));
                 File.Delete(outPath);
             });
         }
@@ -144,7 +145,7 @@ namespace LaPakguette.PakLibTests
             var pakObj = Pak.FromFile(localPath, _aesKey);
             var outPath = Path.Combine(_testFileBasePath, @"result\Pak0-Local");
             pakObj.ToFolder(outPath);
-            Assert.True(UnpackResultEqual(outPath));
+            ClassicAssert.True(UnpackResultEqual(outPath));
             Directory.Delete(outPath, true);
         }
 
@@ -155,7 +156,7 @@ namespace LaPakguette.PakLibTests
             var pakObj = Pak.FromFile(localPath, _aesKey);
             var outPath = Path.Combine(_testFileBasePath, @"result\Pak0-Local_zlib");
             pakObj.ToFolder(outPath);
-            Assert.True(UnpackResultEqual(outPath));
+            ClassicAssert.True(UnpackResultEqual(outPath));
             Directory.Delete(outPath, true);
         }
 
@@ -164,7 +165,8 @@ namespace LaPakguette.PakLibTests
             var comparePath = Path.Combine(_testFileBasePath, @"compare\Pak0-Local");
             var outFiles = Directory.GetFiles(outPath);
             var compareFiles = Directory.GetFiles(comparePath);
-            if (outFiles.Length != compareFiles.Length) return false;
+            if (outFiles.Length != compareFiles.Length)
+                return false;
             foreach (var file in compareFiles)
             {
                 var filename = Path.GetFileName(file);
@@ -173,7 +175,8 @@ namespace LaPakguette.PakLibTests
                 {
                     var compFileBuffer = File.ReadAllBytes(file);
                     var outFileBuffer = File.ReadAllBytes(outFile);
-                    if (!BuffersAreEqual(compFileBuffer, outFileBuffer)) return false;
+                    if (!BuffersAreEqual(compFileBuffer, outFileBuffer))
+                        return false;
                 }
                 else
                 {
